@@ -6,3 +6,6 @@ class Mutation_Orchestrator:
 
     def snv():
         return
+
+    def insertion():
+        return
