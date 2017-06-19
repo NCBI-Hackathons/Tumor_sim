@@ -1,25 +1,33 @@
 from Bio import SeqIO
 from mutation_orchestrator import Mutation_Orchestrator
+import copy
 
-fasta_file = 'test_fasta.fasta'
+input_fasta_file = 'tests/test_fasta.fasta'
 iterations = 100
+output_fasta_file = 'tests/output.fasta'
 
 def main():
     # read genome fasta
-    genome = {}
-    for seq_record in SeqIO.parse(fasta_file, "fasta"):
-        genome[seq_record.id] = seq_record.seq
+    original_genome = {}
+    mutated_genome = {}
+    for seq_record in SeqIO.parse(input_fasta_file, "fasta"):
+        original_genome[seq_record.id] = seq_record.seq
+        mutated_genome[seq_record.id] = seq_record.seq.tomutable()
 
     orchestrator = Mutation_Orchestrator()
 
     # add SNVs
-    mutated_genome = genome
     for i in range(iterations):
         mutated_genome = orchestrator.snv(mutated_genome)
 
     # write fasta
-    with open("output.fasta", "w") as output_handle:
-        SeqIO.write(mutated_genome, output_handle, "fasta")
+    output_seqs = []
+    for chrom in mutated_genome:
+        output_seq = SeqRecord(seq=mutated_genome[chrom].toseq(), id=chrom)
+        output_seqs.append(output_seq)
+
+    with open(output_fasta_file, "w") as output_handle:
+        SeqIO.write(output_seqs, output_handle, "fasta")
 
 if __name__ == "__main__":
     main()
