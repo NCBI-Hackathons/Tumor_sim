@@ -13,15 +13,17 @@ class Mutation_Orchestrator:
     def deletion(self, genome):
         return genome
 
-    def add_snvs(self, sequence, in_memory=True):
+    def add_snvs(self, sequence, chrom, in_memory=True, dampen = 0.01):
         #bug: no mutation at ends
         seq = str(sequence).upper()
-        final_seq = open(self.final_seqfile, "w")
-        lfile = open(self.logfile, "w")
-        lfile.write("nucleotide\toriginal\tmutated")
+        final_seq = open(self.final_seqfile, "a")
+        lfile = open(self.logfile, "a")
+        lfile.write("chrom\tnucleotide\toriginal\tmutated")
         prob_file = open(self.prob_table_file, "r")
         prob_table = []
         key = []
+        b = prob_file.readline()
+        # skip the first line
         b = prob_file.readline()
         ic = 0
         # Create probability table, reading prob_file
@@ -43,13 +45,14 @@ class Mutation_Orchestrator:
         random.seed()
         while c < len(seq) - 2:
             ##CHANGE TO NUMPY
-            randomvalue = random.random()
+            randomvalue = random.random() / dampen
             triplet = seq[c:c + 3]
             # ERROR: need to save first and last 
-            original_base = prob_table[check][0][1]
+            original_base = triplet[1]
             if c % 1000000 == 0:
                 print('In loop {} of add_snvs'.format(c))
             if 'N' not in triplet:
+                check = key.index(triplet)
                 # Only look at the old sequence data set 
                 if randomvalue > prob_table[check][6] + prob_table[check][4] + prob_table[check][2]:
                     new_base = original_base
@@ -61,14 +64,12 @@ class Mutation_Orchestrator:
                     new_base = prob_table[check][1][1]
             else:
                 new_base = original_base
-            if in_memory:
-                if new_base != original_base:
+            if new_base != original_base:
+                lfile.write("\n" + chrom + "\t" + str(c + 2) + "\t"  + original_base + "\t" + new_base)
+                if in_memory:
                     self.mc.create_snv(sequence, c, new_base)
-                    lfile.write("\n" + str(c + 2) + "\t" + prob_table[check][0][1] + "\t" + new_base)
-            else:
+            if not in_memory:
                 final_seq.write(new_base)
-                if new_base != original_base:
-                    lfile.write("\n" + str(c + 2) + "\t" + prob_table[check][0][1] + "\t" + new_base)
             c += 1
         return sequence
     
@@ -77,7 +78,7 @@ class Mutation_Orchestrator:
 
     def add_snvs_across_genome(self, genome):
         for chr in genome:
-            genome[chr] = self.add_snvs(genome[chr])
+            genome[chr] = self.add_snvs(genome[chr], chr)
         return genome
 
 
