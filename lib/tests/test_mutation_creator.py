@@ -21,10 +21,10 @@ class TestMutationCreator(unittest.TestCase):
         my_seq = MutableSeq("ACTCGTCGTC", generic_dna)
         mc = mutation_creator.Mutation_Creator()
         new_seq = mc.create_snv(my_seq, start=3, 'A')
-        self.assertEqual(new_seq, MutableSeq("ACTATGCGTC"))
+        self.assertEqual(new_seq, MutableSeq("ACTAGTCGTC"))
 
     def test_insertion(self):
         my_seq = MutableSeq("ACTCGTCGTC", generic_dna)
         mc = mutation_creator.Mutation_Creator()
         new_seq = mc.create_insertion(my_seq, start=3, 'AAAA')
-        self.assertEqual(new_seq, MutableSeq("ACTAAAACTGCGTC"))
+        self.assertEqual(new_seq, MutableSeq("ACTAAAACGTCGTC"))
