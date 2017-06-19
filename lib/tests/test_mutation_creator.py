@@ -10,3 +10,9 @@ class TestMutationCreator(unittest.TestCase):
         mc = mutation_creator.Mutation_Creator()
         new_seq = mc.create_deletion(my_seq, start=5, end=10)
         self.assertEqual(new_seq, MutableSeq("ACTCG", generic_dna))
+
+    def test_inversion(self):
+        my_seq = MutableSeq("ACTCGTCGTC", generic_dna):
+        mc = mutation_creator.Mutation_Creator()
+        new_seq = mc.create_inversion(my_seq, start=3, end=7)
+        self.assertEqual(new_seq, MutableSeq("ACTCTGCGTC"))

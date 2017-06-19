@@ -10,5 +10,6 @@ class Mutation_Creator:
     def create_insertion(self, mutable_seq, start, end, new_seq):
         return mutable_seq
 
-    def create_inversion(self, mutable_seq, start, end, new_start, new_end):
+    def create_inversion(self, mutable_seq, start, end):
+        mutable_seq[start:end] = mutable_seq[start:end].reverse()
         return mutable_seq
