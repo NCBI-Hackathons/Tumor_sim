@@ -1,11 +1,11 @@
 from Bio import SeqIO
 
 class Mutation_Orchestrator:
-    def deletion():
-        return
+    def deletion(self, genome):
+        return genome
 
-    def snv():
-        return
+    def snv(self, genome):
+        return genome
 
-    def insertion():
-        return
+    def insertion(self, genome):
+        return genome
