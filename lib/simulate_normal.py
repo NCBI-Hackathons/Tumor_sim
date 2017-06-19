@@ -11,7 +11,7 @@ def main():
     original_genome = {}
     mutated_genome = {}
     for seq_record in SeqIO.parse(input_fasta_file, "fasta"):
-        original_genome[seq_record.id] = seq_record.seq
+        original_genome[seq_record.id] = seq_record
         mutated_genome[seq_record.id] = seq_record.seq.tomutable()
 
     orchestrator = Mutation_Orchestrator()
@@ -23,7 +23,8 @@ def main():
     # write fasta
     output_seqs = []
     for chrom in mutated_genome:
-        output_seq = SeqIO.SeqRecord(seq=mutated_genome[chrom].toseq(), id=chrom)
+        output_seq = SeqIO.SeqRecord(seq=mutated_genome[chrom].toseq(),
+              id=chrom, description='', name='')
         output_seqs.append(output_seq)
 
     with open(output_fasta_file, "w") as output_handle:
