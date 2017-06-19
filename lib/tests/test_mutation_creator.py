@@ -20,7 +20,7 @@ class TestMutationCreator(unittest.TestCase):
     def test_snv(self):
         my_seq = MutableSeq("ACTCGTCGTC", generic_dna)
         mc = mutation_creator.Mutation_Creator()
-        new_seq = mc.create_snv(my_seq, start=3, 'A')
+        new_seq = mc.create_snv(my_seq, start=3, new_base='A')
         self.assertEqual(new_seq, MutableSeq("ACTAGTCGTC"))
 
     def test_insertion(self):
