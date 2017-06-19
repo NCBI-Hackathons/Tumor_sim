@@ -15,16 +15,16 @@ class TestMutationCreator(unittest.TestCase):
         my_seq = MutableSeq("ACTCGTCGTC", generic_dna)
         mc = mutation_creator.Mutation_Creator()
         new_seq = mc.create_inversion(my_seq, start=3, end=7)
-        self.assertEqual(new_seq, MutableSeq("ACTCTGCGTC"))
+        self.assertEqual(new_seq, MutableSeq("ACTCTGCGTC", generic_dna))
 
     def test_snv(self):
         my_seq = MutableSeq("ACTCGTCGTC", generic_dna)
         mc = mutation_creator.Mutation_Creator()
         new_seq = mc.create_snv(my_seq, start=3, new_base='A')
-        self.assertEqual(new_seq, MutableSeq("ACTAGTCGTC"))
+        self.assertEqual(new_seq, MutableSeq("ACTAGTCGTC", generic_dna))
 
     def test_insertion(self):
         my_seq = MutableSeq("ACTCGTCGTC", generic_dna)
         mc = mutation_creator.Mutation_Creator()
         new_seq = mc.create_insertion(my_seq, start=3, new_seq='AAAA')
-        self.assertEqual(new_seq, MutableSeq("ACTAAAACGTCGTC"))
+        self.assertEqual(new_seq, MutableSeq("ACTAAAACGTCGTC", generic_dna))
