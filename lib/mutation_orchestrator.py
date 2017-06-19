@@ -4,8 +4,8 @@ class Mutation_Orchestrator:
     def deletion():
         return
 
-    def snv():
-        return
+    def snv(genome):
+        return genome
 
     def insertion():
         return
