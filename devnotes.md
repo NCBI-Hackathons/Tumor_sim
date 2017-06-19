@@ -11,8 +11,13 @@ run
 [nosetests](http://pythontesting.net/framework/nose/nose-introduction/) 
 (this runs the unit tests):
 
+In python 2.7:
 ```
 nosetests
+```
+In python 3.4:
+```
+python3 -m "nose"
 ```
 
 Output should look like this:
