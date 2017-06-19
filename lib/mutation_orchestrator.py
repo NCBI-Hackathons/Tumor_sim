@@ -33,7 +33,7 @@ class Mutation_Orchestrator:
             else:
                 if key.count(f[0]) == 0:
                     key.append(f[0])
-                    prob_table.append(f)
+                    prob_table.append([f[0], f[1],float(f[2])])
                 else:
                     check = key.index(f[0])
                     prob_table[check] += [f[1],float(f[2])]
@@ -51,11 +51,11 @@ class Mutation_Orchestrator:
                 print('In loop {} of add_snvs'.format(c))
             if 'N' not in triplet:
                 # Only look at the old sequence data set 
-                if randomvalue > float(prob_table[check][6]) + float(prob_table[check][4]) + float(prob_table[check][2]):
+                if randomvalue > prob_table[check][6] + prob_table[check][4] + prob_table[check][2]:
                     new_base = original_base
-                elif randomvalue > float(prob_table[check][4]) + float(prob_table[check][2]):
+                elif randomvalue > prob_table[check][4] + prob_table[check][2]:
                     new_base = prob_table[check][5][1]
-                elif randomvalue > float(prob_table[check][2]):
+                elif randomvalue > prob_table[check][2]:
                     new_base = prob_table[check][3][1]
                 else:
                     new_base = prob_table[check][1][1]
@@ -64,19 +64,22 @@ class Mutation_Orchestrator:
             if in_memory:
                 if new_base != original_base:
                     self.mc.create_snv(sequence, c, new_base)
+                    lfile.write("\n" + str(c + 2) + "\t" + prob_table[check][0][1] + "\t" + new_base)
             else:
                 final_seq.write(new_base)
                 if new_base != original_base:
                     lfile.write("\n" + str(c + 2) + "\t" + prob_table[check][0][1] + "\t" + new_base)
             c += 1
-    
         return sequence
     
     def insertion(self, genome):
         return genome
 
     def add_snvs_across_genome(self, genome):
-        self.add_snvs(genome['chr1'])
+        for chr in genome:
+            genome[chr] = self.add_snvs(genome[chr])
+        return genome
+
 
 
 
