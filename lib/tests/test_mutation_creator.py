@@ -26,5 +26,5 @@ class TestMutationCreator(unittest.TestCase):
     def test_insertion(self):
         my_seq = MutableSeq("ACTCGTCGTC", generic_dna)
         mc = mutation_creator.Mutation_Creator()
-        new_seq = mc.create_insertion(my_seq, start=3, 'AAAA')
+        new_seq = mc.create_insertion(my_seq, start=3, new_seq='AAAA')
         self.assertEqual(new_seq, MutableSeq("ACTAAAACGTCGTC"))
