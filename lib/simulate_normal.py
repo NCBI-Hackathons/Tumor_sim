@@ -2,7 +2,7 @@ from Bio import SeqIO
 from mutation_orchestrator import Mutation_Orchestrator
 import copy
 
-input_fasta_file = 'tests/test_fasta.fasta'
+input_fasta_file = '../data/subsampled_hg38.fa'
 iterations = 100
 output_fasta_file = 'tests/output.fasta'
 
