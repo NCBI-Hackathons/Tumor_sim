@@ -23,7 +23,7 @@ def main():
     # write fasta
     output_seqs = []
     for chrom in mutated_genome:
-        output_seq = SeqRecord(seq=mutated_genome[chrom].toseq(), id=chrom)
+        output_seq = SeqIO.SeqRecord(seq=mutated_genome[chrom].toseq(), id=chrom)
         output_seqs.append(output_seq)
 
     with open(output_fasta_file, "w") as output_handle:
