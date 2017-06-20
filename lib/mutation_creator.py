@@ -3,10 +3,7 @@ from random import randint
 
 class Mutation_Creator:
     def create_deletion(self, mutable_seq, start, end):
-        before_seq = mutable_seq[:start]
-        after_seq = mutable_seq[end:]
-        before_seq.extend(after_seq)
-        return before_seq
+        return mutable_seq[:start] + mutable_seq[end:]
 
     ### InDels in healthy genomes havee ~400-600K InDels, ~90% sized 1-9 bp, ~10 10-20 bp, sized up to 10Kb 
     
@@ -27,14 +24,17 @@ class Mutation_Creator:
         return mutable_seq
 
     def create_insertion(self, mutable_seq, start, new_seq):
-        before_seq = mutable_seq[:start]
-        after_seq = mutable_seq[start:]
-        before_seq.extend(new_seq)
-        before_seq.extend(after_seq)
-        return before_seq
+        return mutable_seq[:start] + new_seq +  mutable_seq[start:]
 
     def create_inversion(self, mutable_seq, start, end):
         inv_seq = mutable_seq[start:end]
         inv_seq.reverse()
         mutable_seq[start:end] = inv_seq
         return mutable_seq
+
+    def create_translocation(self, seq1, seq2, start1, start2, length1, length2):
+        new_seq1 = self.create_deletion(seq1, start1,start1+length1)
+        new_seq1 = self.create_insertion(new_seq1, start1, seq2[start2:start2+length2])
+        new_seq2 = self.create_deletion(seq2, start2,start2+length2)
+        new_seq2 = self.create_insertion(new_seq2, start2, seq1[start1:start1+length1])
+        return (new_seq1, new_seq2)
