@@ -21,14 +21,14 @@ class Mutation_Orchestrator:
         'insertion' : 0.2
         }
 
-    def deletion(self, genome):
-        return genome
-
     def snv_fast(self, genome, number):
+        chroms = self.pick_chromosomes(genome, number)
+        new_bases = np.random.choice(['A', 'C', 'T', 'G'], number, [0.25, 0.25, 0.25, 0.25])
+        for i in range(number):
+            start = self.get_location_on_sequence(genome[chroms[i]])
+            genome[chroms[i]] = self.creator.create_snv(genome[chroms[i]], start, new_bases[i])
+            print('Added base {} at loc {} in chrom {}').format(new_bases[i], str(start), chroms[i])
         return
-
-    def insertion(self, genome):
-        return genome
 
     def pick_chromosomes(self, genome, number=1, replace=True):
         relative_lengths = np.array([len(genome[x]) for x in genome])
@@ -44,7 +44,7 @@ class Mutation_Orchestrator:
                 if seq[location] != 'N':
                     return location
         else:
-            return NotImplementedError('Only Uniform is implemented!')
+            raise NotImplementedError('Only Uniform is implemented!')
 
     def orchestrate_deletion(self, genome, distribution='uniform'):
         chrom = self.pick_chromosomes(genome)[0]
@@ -74,20 +74,30 @@ class Mutation_Orchestrator:
         z = np.random.geometric(p, size=number)
         return z[0]
 
+    # Duplication currently only goes one direction (forward)
     def orchestrate_duplication(self, genome, distribution='uniform'):
-        print('in orchestrate_duplication')
+        chrom = self.pick_chromosomes(genome, number = 1)[0]
+        start = self.get_location_on_sequence(genome[chrom])
+        end = start + self.get_event_length(p=0.001)
+        genome[chrom] = self.creator.create_insertion(genome[chrom], start, genome[chrom][start:end])
         return genome
 
     def orchestrate_inversion(self, genome, distribution='uniform'):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
+        start = self.get_location_on_sequence(genome[chrom])
         end = start + self.get_event_length(p=0.001)
         genome[chrom] = self.creator.create_inversion(genome[chrom], start, end)
-        print ('in orchestrate_inversion')
-        
+        return genome
 
     def orchestrate_insertion(self, genome, distribution='uniform'):
         print ('in orchestrate_insertion')
         chrom = self.pick_chromosomes(genome, number = 1)[0]
+        start = self.get_location_on_sequence(genome[chrom])
+        event_length = self.get_event_length(p=0.6)
+        new_seq_start = self.get_location_on_sequence(genome[chrom])
+        new_seq_end = new_seq_start + event_length
+        new_seq = genome[chrom][new_seq_start:new_seq_end]
+        genome[chrom] = self.creator.create_insertion(genome[chrom], start, new_seq)
         return genome
 
     def generate_structural_variations(self, genome, number):
