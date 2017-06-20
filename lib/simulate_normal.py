@@ -2,6 +2,7 @@ from Bio import SeqIO
 from mutation_orchestrator import Mutation_Orchestrator
 import copy
 
+#input_fasta_file = '/Users/ndeveaux/igv/genomes/mm9.fasta'
 input_fasta_file = '../data/subsampled_hg38.fa'
 number_snvs = 400000
 output_fasta_file = 'tests/output.fasta'
@@ -37,7 +38,7 @@ def main():
     mutated_genome = orchestrator.snv_fast(mutated_genome, number_snvs)
 
     # add structural varations
-    mutated_genome = orchestrator.generate_structural_variations(mutated_genome, 10000)
+    mutated_genome = orchestrator.generate_structural_variations(mutated_genome, 1000)
 
     write_fasta(mutated_genome)
     write_bam(mutated_genome)

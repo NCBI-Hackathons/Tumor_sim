@@ -106,12 +106,19 @@ class Mutation_Orchestrator:
         new_seq = genome[chrom][new_seq_start:new_seq_end]
         genome[chrom] = self.creator.create_insertion(genome[chrom], start, new_seq)
         logging.info('Orchestrated insertion at position {} on chrom {} adding bases from position {} to {}'.format(start,
-         chrom, new_seq_start, new_seq_end))
+            chrom, new_seq_start, new_seq_end))
         return genome
+
+    # Keep in mind the tracker lengths have had the Ns removed, and will need to be added back to it after
+    def get_tracker_object(genome):
+        tracker = {}
+        for chrom in genome:
+            self.tracker[chrom] = [{chrom:(0, len(genome[chrom]))}]
 
     def generate_structural_variations(self, genome, number):
         variations = np.random.choice(list(self.structural_variations_probabilities.keys()),
          number, self.structural_variations_probabilities.values())
+        self.creator.tracker = self.get_tracker_object(genome)
         mutated_genome = genome
         for variation in variations:
             mutated_genome = self.structural_variations[variation](mutated_genome)
