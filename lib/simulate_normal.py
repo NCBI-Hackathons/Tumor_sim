@@ -21,7 +21,21 @@ def write_fasta(mutated_genome):
         SeqIO.write(output_seqs, output_handle, "fasta")
 
 def remove_trailing_N_characters(sequence):
+
+
+"NNNNNNNNNAANNNNN"
+
+
+
+<<<<<<< HEAD
     
+=======
+    for chrom in sequence:
+        while sequence[chrom][0] == 'N':
+            sequence[chrom].pop(0)
+        while sequence[chrom][-1] == 'N':
+            sequence[chrom].pop(-1)
+>>>>>>> 0a9075849fb99770037f8d7ec223d45263764c29
     return sequence
 
 def read_fasta():
