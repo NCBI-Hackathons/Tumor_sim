@@ -64,14 +64,10 @@ class Mutation_Orchestrator:
         start_target = self.get_location_on_sequence(genome[chrom_target])
         source_event_length = self.get_event_length(p=0.001)
         target_event_length = self.get_event_length(p=0.001)
-        # Make sure event 
-        if start_source + source_event_length > len(genome[chrom_source]):
-            source_event_length = len(genome[chrom_source]) - start_source
-        if start_target + target_event_length > len(genome[chrom_target]):
-            target_event_length = len(genome[chrom_target]) - start_target
-        raise NotImplementedError()  
-        # mutated_genome = creator
-        print('in orchestrate_translocation')
+        (genome[chrom_source], genome[chrom_target]) = self.creator.create_translocation(
+            genome[chrom_source],
+         genome[chrom_target], start_source, start_target, source_event_length, target_event_length)
+        return genome
 
     # Models exponential decay, discretely, within a 1-10 range. 
     # Expected value of event is 1/p

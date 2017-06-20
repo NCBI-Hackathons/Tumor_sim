@@ -20,13 +20,16 @@ def write_fasta(mutated_genome):
     with open(output_fasta_file, "w") as output_handle:
         SeqIO.write(output_seqs, output_handle, "fasta")
 
+def remove_trailing_N_characters(sequence):
+    return sequence
+
 def main():
     # read genome fasta
     original_genome = {}
     mutated_genome = {}
     for seq_record in SeqIO.parse(input_fasta_file, "fasta"):
         original_genome[seq_record.id] = seq_record
-        mutated_genome[seq_record.id] = seq_record.seq.tomutable()
+        mutated_genome[seq_record.id] = remove_trailing_N_characters(seq_record.seq.tomutable())
 
     orchestrator = Mutation_Orchestrator()
 
