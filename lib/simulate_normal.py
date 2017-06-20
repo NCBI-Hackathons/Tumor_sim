@@ -37,7 +37,7 @@ def main():
     mutated_genome = orchestrator.snv_fast(mutated_genome, number_snvs)
 
     # add structural varations
-    mutated_genome = orchestrator.generate_structural_variations(mutated_genome, 1000)
+    mutated_genome = orchestrator.generate_structural_variations(mutated_genome, 10000)
 
     write_fasta(mutated_genome)
     write_bam(mutated_genome)

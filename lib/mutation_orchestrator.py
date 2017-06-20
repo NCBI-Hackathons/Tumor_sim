@@ -106,5 +106,6 @@ class Mutation_Orchestrator:
         mutated_genome = genome
         for variation in variations:
             mutated_genome = self.structural_variations[variation](mutated_genome)
+        return mutated_genome
 
 
