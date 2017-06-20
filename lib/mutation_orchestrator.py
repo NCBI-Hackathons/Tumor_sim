@@ -1,6 +1,7 @@
 from Bio import SeqIO
 import numpy as np
 from mutation_creator import Mutation_Creator
+import logging
 
 class Mutation_Orchestrator:
     def __init__(self):
@@ -20,6 +21,7 @@ class Mutation_Orchestrator:
         'inversion' : 0.2,
         'insertion' : 0.2
         }
+        self.logger = logging.basicConfig(filename='example.log',level=logging.DEBUG)
 
     def snv_fast(self, genome, number):
         chroms = self.pick_chromosomes(genome, number)
@@ -27,7 +29,7 @@ class Mutation_Orchestrator:
         for i in range(number):
             start = self.get_location_on_sequence(genome[chroms[i]])
             genome[chroms[i]] = self.creator.create_snv(genome[chroms[i]], start, new_bases[i])
-            print('Added base {} at loc {} in chrom {}').format(new_bases[i], str(start), chroms[i])
+            logging.info('Added base {} at position {} in chrom {}'.format(new_bases[i], str(start), chroms[i]))
         return genome
 
     def pick_chromosomes(self, genome, number=1, replace=True):
@@ -51,6 +53,7 @@ class Mutation_Orchestrator:
         start = self.get_location_on_sequence(genome[chrom])
         end = start + self.get_event_length()
         genome[chrom] = self.creator.create_deletion(genome[chrom], start, end)
+        logging.info('Orchestrated deletion from {} to {} in chrom {}'.format(start, end, chrom))
         return genome
 
     def orchestrate_translocation(self, genome, distribution='uniform'):
@@ -65,6 +68,8 @@ class Mutation_Orchestrator:
         (genome[chrom_source], genome[chrom_target]) = self.creator.create_translocation(
             genome[chrom_source],
          genome[chrom_target], start_source, start_target, source_event_length, target_event_length)
+        logging.info('Orchestrated translocation at position {} of length {} on chrom {} to position {} of length {} on chrom {}'.format(
+            start_source, source_event_length, chrom_source, start_target, target_event_length, chrom_target))
         return genome
 
     # Models exponential decay, discretely, within a 1-10 range. 
@@ -80,6 +85,7 @@ class Mutation_Orchestrator:
         start = self.get_location_on_sequence(genome[chrom])
         end = start + self.get_event_length(p=0.001)
         genome[chrom] = self.creator.create_insertion(genome[chrom], start, genome[chrom][start:end])
+        logging.info('Orchestrated duplication at position {} to {} on chrom {}'.format(start, end, chrom))
         return genome
 
     def orchestrate_inversion(self, genome, distribution='uniform'):
@@ -87,6 +93,7 @@ class Mutation_Orchestrator:
         start = self.get_location_on_sequence(genome[chrom])
         end = start + self.get_event_length(p=0.001)
         genome[chrom] = self.creator.create_inversion(genome[chrom], start, end)
+        logging.info('Orchestrated inversion at position {} to {} on chrom {}'.format(start, end, chrom))
         return genome
 
     def orchestrate_insertion(self, genome, distribution='uniform'):
@@ -98,6 +105,8 @@ class Mutation_Orchestrator:
         new_seq_end = new_seq_start + event_length
         new_seq = genome[chrom][new_seq_start:new_seq_end]
         genome[chrom] = self.creator.create_insertion(genome[chrom], start, new_seq)
+        logging.info('Orchestrated insertion at position {} on chrom {} adding bases from position {} to {}'.format(start,
+         chrom, new_seq_start, new_seq_end))
         return genome
 
     def generate_structural_variations(self, genome, number):
