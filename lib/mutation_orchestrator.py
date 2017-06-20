@@ -28,6 +28,12 @@ class Mutation_Orchestrator:
     def insertion(self, genome):
         return genome
 
+    def pick_chromosome(self, genome):
+        import pdb; pdb.set_trace()
+        relative_lengths = np.array([len(genome[x]) for x in genome])
+        probabilities = relative_lengths / float(relative_lengths.sum())
+        return np.random.choice(genome.keys(), 1, probabilities.tolist())
+
     def get_location_on_sequence(seq, distribution='uniform'):
         if distribution == 'uniform':
             np.randint(len(seq))
@@ -49,7 +55,6 @@ class Mutation_Orchestrator:
         print ('in orchestrate_insertion')
 
     def generate_structural_variations(self, genome, number):
-        import pdb; pdb.set_trace()
         variations = np.random.choice(self.structural_variations_probabilities.keys(),
          number, self.structural_variations_probabilities.values())
         mutated_genome = genome

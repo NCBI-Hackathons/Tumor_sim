@@ -13,6 +13,10 @@ class TestMutationOrchestrator(unittest.TestCase):
     def test_deletion(self):
         return
 
+    def test_pick_chromosome_always_pick_non_empty_chrom(self):
+        self.genome['chr2'] = MutableSeq("", generic_dna)
+        self.assertEqual(self.mo.pick_chromosome(self.genome), 'chr1')
+
     def test_generate_structural_variations(self):
         number = 8 
         self.mo.generate_structural_variations(self.genome, number)
