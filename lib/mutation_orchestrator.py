@@ -38,7 +38,14 @@ class Mutation_Orchestrator:
 
     def get_location_on_sequence(seq, distribution='uniform'):
         if distribution == 'uniform':
-            np.randint(len(seq))
+            # Don't select a location with a N
+            while True:
+                location = np.randint(len(seq))
+                if seq[location] != 'N':
+                    break
+            return location
+        else:
+            return NotImplementedError('Only Uniform is implemented!')
 
     def orchestrate_deletion(genome, distribution='uniform'):
         chrom = self.pick_chromosome(genome)
@@ -52,11 +59,14 @@ class Mutation_Orchestrator:
         (chrom_source, chrom_target) = self.pick_chromosomes(genome, number = 2, replace = False)
         start_source = self.get_location_on_sequence(genome[chrom_source])
         start_target = self.get_location_on_sequence(genome[chrom_target])
+        length = get_event_length(p=0.001)
+
         mutated_genome = creator
         print('in orchestrate_translocation')
 
     # Models exponential decay, discretely, within a 1-10 range. 
-    def get_deletion_length(p=0.6):
+    # Expected value of event is 1/p
+    def get_event_length(p=0.6):
         number = 1
         z = np.random.geometric(p, size=number)
         return z[0]
