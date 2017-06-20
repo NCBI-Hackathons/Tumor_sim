@@ -25,7 +25,7 @@ class Mutation_Orchestrator:
         return genome
 
     def snv_fast(self, genome, number):
-        
+        return
 
     def insertion(self, genome):
         return genome
@@ -33,52 +33,64 @@ class Mutation_Orchestrator:
     def pick_chromosomes(self, genome, number=1, replace=True):
         relative_lengths = np.array([len(genome[x]) for x in genome])
         probabilities = relative_lengths / float(relative_lengths.sum())
-        chroms = np.random.choice(genome.keys(), number, probabilities.tolist(), replace)
+        chroms = np.random.choice(genome.keys(), number, replace=replace,p=probabilities.tolist())
         return chroms
 
-    def get_location_on_sequence(seq, distribution='uniform'):
+    def get_location_on_sequence(self, seq, distribution='uniform'):
         if distribution == 'uniform':
             # Don't select a location with a N
             while True:
-                location = np.randint(len(seq))
+                location = np.random.randint(len(seq))
                 if seq[location] != 'N':
-                    break
-            return location
+                    return location
         else:
             return NotImplementedError('Only Uniform is implemented!')
 
-    def orchestrate_deletion(genome, distribution='uniform'):
-        chrom = self.pick_chromosome(genome)
+    def orchestrate_deletion(self, genome, distribution='uniform'):
+        chrom = self.pick_chromosomes(genome)[0]
         start = self.get_location_on_sequence(genome[chrom])
-        # To be completed
+        end = start + self.get_event_length()
+        if end > len(genome[chrom]):
+            end = len(genome[chrom])
+        genome[chrom] = self.creator.create_deletion(genome[chrom], start, end)
+        return genome
 
-    def orchestrate_translocation(genome, distribution='uniform'):
+    def orchestrate_translocation(self, genome, distribution='uniform'):
         if len(genome) == 1:
             print('No translocations allowed: genome too small')
             return
         (chrom_source, chrom_target) = self.pick_chromosomes(genome, number = 2, replace = False)
         start_source = self.get_location_on_sequence(genome[chrom_source])
         start_target = self.get_location_on_sequence(genome[chrom_target])
-        length = get_event_length(p=0.001)
-
-        mutated_genome = creator
+        source_event_length = self.get_event_length(p=0.001)
+        target_event_length = self.get_event_length(p=0.001)
+        # Make sure event 
+        if start_source + source_event_length > len(genome[chrom_source]):
+            source_event_length = len(genome[chrom_source]) - start_source
+        if start_target + target_event_length > len(genome[chrom_target]):
+            target_event_length = len(genome[chrom_target]) - start_target
+        return NotImplementedError()  
+        # mutated_genome = creator
         print('in orchestrate_translocation')
 
     # Models exponential decay, discretely, within a 1-10 range. 
     # Expected value of event is 1/p
-    def get_event_length(p=0.6):
+    def get_event_length(self, p=0.6):
         number = 1
         z = np.random.geometric(p, size=number)
         return z[0]
 
-    def orchestrate_duplication(genome,  distribution='uniform'):
+    def orchestrate_duplication(self, genome, distribution='uniform'):
         print('in orchestrate_duplication')
+        return genome
 
-    def orchestrate_inversion(genome,  distribution='uniform'):
+    def orchestrate_inversion(self, genome, distribution='uniform'):
         print ('in orchestrate_inversion')
+        return genome
 
-    def orchestrate_insertion(genome,  distribution='uniform'):
+    def orchestrate_insertion(self, genome, distribution='uniform'):
         print ('in orchestrate_insertion')
+        return genome
 
     def generate_structural_variations(self, genome, number):
         variations = np.random.choice(self.structural_variations_probabilities.keys(),
