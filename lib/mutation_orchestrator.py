@@ -31,7 +31,6 @@ class Mutation_Orchestrator:
         return genome
 
     def pick_chromosomes(self, genome, number=1, replace=True):
-        import pdb; pdb.set_trace()
         relative_lengths = np.array([len(genome[x]) for x in genome])
         probabilities = relative_lengths / float(relative_lengths.sum())
         chroms = np.random.choice(genome.keys(), number, probabilities.tolist(), replace)
@@ -54,8 +53,13 @@ class Mutation_Orchestrator:
         start_source = self.get_location_on_sequence(genome[chrom_source])
         start_target = self.get_location_on_sequence(genome[chrom_target])
         mutated_genome = creator
-
         print('in orchestrate_translocation')
+
+    # Models exponential decay, discretely, within a 1-10 range. 
+    def get_deletion_length(p=0.6):
+        number = 1
+        z = np.random.geometric(p, size=number)
+        return z[0]
 
     def orchestrate_duplication(genome,  distribution='uniform'):
         print('in orchestrate_duplication')
