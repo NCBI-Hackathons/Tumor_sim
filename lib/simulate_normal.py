@@ -21,7 +21,13 @@ def write_fasta(mutated_genome):
         SeqIO.write(output_seqs, output_handle, "fasta")
 
 def remove_trailing_N_characters(sequence):
+    
     return sequence
+
+def read_fasta():
+    original_genome = {} 
+    for seq_record in SeqIO.parse(input_fasta_file, "fasta"):
+        original_genome[seq_record.id] = seq_record.upper() 
 
 def main():
     # read genome fasta

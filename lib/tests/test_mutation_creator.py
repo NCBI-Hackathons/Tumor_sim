@@ -11,6 +11,10 @@ class TestMutationCreator(unittest.TestCase):
         new_seq = mc.create_deletion(my_seq, start=5, end=10)
         self.assertEqual(new_seq, MutableSeq("ACTCG", generic_dna))
 
+    def test_behavior(self):
+        my_seq = MutableSeq("agg", generic_dna)
+        self.assertEqual(my_seq, MutableSeq("AGG", generic_dna))
+
     def test_deletion_outside_range(self):
         my_seq = MutableSeq("AAAAAA", generic_dna)
         mc = mutation_creator.Mutation_Creator()
