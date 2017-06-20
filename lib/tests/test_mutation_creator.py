@@ -23,11 +23,29 @@ class TestMutationCreator(unittest.TestCase):
         new_seq = mc.create_snv(my_seq, start=3, new_base='A')
         self.assertEqual(new_seq, MutableSeq("ACTAGTCGTC", generic_dna))
 
+    def test_snv_works_on_N(self):
+        my_seq = MutableSeq("AN", generic_dna)
+        mc = mutation_creator.Mutation_Creator()
+        new_seq = mc.create_snv(my_seq, start=1, new_base='A')
+        self.assertEqual(new_seq, MutableSeq("AA", generic_dna))
+
+    def test_snv_works_can_insert_N(self):
+        my_seq = MutableSeq("AA", generic_dna)
+        mc = mutation_creator.Mutation_Creator()
+        new_seq = mc.create_snv(my_seq, start=1, new_base='N')
+        self.assertEqual(new_seq, MutableSeq("AN", generic_dna))
+
     def test_insertion(self):
         my_seq = MutableSeq("ACTCGTCGTC", generic_dna)
         mc = mutation_creator.Mutation_Creator()
         new_seq = mc.create_insertion(my_seq, start=3, new_seq='AAAA')
         self.assertEqual(new_seq, MutableSeq("ACTAAAACGTCGTC", generic_dna))
+
+    def test_inversion_larger_than_seq(self):
+        my_seq = MutableSeq("CAAAT", generic_dna)
+        mc = mutation_creator.Mutation_Creator()
+        new_seq = mc.create_inversion(my_seq, start=1, end=7)
+        self.assertEqual(new_seq, MutableSeq("CTAAA", generic_dna))
 
     def test_translocation(self):
         seq1 = MutableSeq("AAAAAAAAA", generic_dna)
