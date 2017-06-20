@@ -28,7 +28,7 @@ class Mutation_Orchestrator:
             start = self.get_location_on_sequence(genome[chroms[i]])
             genome[chroms[i]] = self.creator.create_snv(genome[chroms[i]], start, new_bases[i])
             print('Added base {} at loc {} in chrom {}').format(new_bases[i], str(start), chroms[i])
-        return
+        return genome
 
     def pick_chromosomes(self, genome, number=1, replace=True):
         relative_lengths = np.array([len(genome[x]) for x in genome])
