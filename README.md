@@ -18,14 +18,20 @@ wget ...
 ```
 
 ## Test
-To download hg38: wget  http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz
+To download hg38: 
+
+```
+wget  http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz
+```
 
 To download hg19, use the following commands:
 
+```
 wget http://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/chromFa.tar.gz
 tar -xzf chromFa.tar.gz
 cat chr*.fa > hg19.fa
 gzip hg19.fa
+```
 
 A subsampled version of hg38 is also provided in the [data folder](https://github.com/NCBI-Hackathons/Tumor_sim/tree/master/data) of this repository
 
