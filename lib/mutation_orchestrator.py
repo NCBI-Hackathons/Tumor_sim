@@ -50,8 +50,6 @@ class Mutation_Orchestrator:
         chrom = self.pick_chromosomes(genome)[0]
         start = self.get_location_on_sequence(genome[chrom])
         end = start + self.get_event_length()
-        if end > len(genome[chrom]):
-            end = len(genome[chrom])
         genome[chrom] = self.creator.create_deletion(genome[chrom], start, end)
         return genome
 
@@ -81,11 +79,15 @@ class Mutation_Orchestrator:
         return genome
 
     def orchestrate_inversion(self, genome, distribution='uniform'):
+        chrom = self.pick_chromosomes(genome, number = 1)[0]
+        end = start + self.get_event_length(p=0.001)
+        genome[chrom] = self.creator.create_inversion(genome[chrom], start, end)
         print ('in orchestrate_inversion')
-        return genome
+        
 
     def orchestrate_insertion(self, genome, distribution='uniform'):
         print ('in orchestrate_insertion')
+        chrom = self.pick_chromosomes(genome, number = 1)[0]
         return genome
 
     def generate_structural_variations(self, genome, number):
