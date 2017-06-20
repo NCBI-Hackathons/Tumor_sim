@@ -69,7 +69,7 @@ class Mutation_Orchestrator:
             source_event_length = len(genome[chrom_source]) - start_source
         if start_target + target_event_length > len(genome[chrom_target]):
             target_event_length = len(genome[chrom_target]) - start_target
-        return NotImplementedError()  
+        raise NotImplementedError()  
         # mutated_genome = creator
         print('in orchestrate_translocation')
 
