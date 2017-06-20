@@ -1,12 +1,14 @@
+import numpy as np
+
 class Mutation_Tracker():
 
     # Keep in mind the tracker lengths have had the Ns removed, and will need to be added back to it after
-    def create_structure(genome):
+    def create_structure(self, genome):
         self.structure = {}
         for chrom in genome:
             self.structure[chrom] = [{chrom:(0, len(genome[chrom]))}]
 
-    def get_interval(l):
+    def get_interval(self, l):
         return l.values()[0]
 
     def track_deletion(self, chrom, start, end):
@@ -14,42 +16,57 @@ class Mutation_Tracker():
         feature_list = self.structure[chrom]
         current = 0
         i = 0
+        import pdb; pdb.set_trace()
         while True:
+            if i == len(feature_list):
+                # We have to delete all the way to the end of the list
+                end_i = start_i
+                end_offset = - 1
+                break
             interval = self.get_interval(feature_list[i])
             diff = np.abs(interval[0] - interval[1]) 
             if start < (current + diff):
                 start_i = i
-                start_offset = start - current
+                start_offset = start - current - 1
             if end < (current + diff):
                 end_i = i
-                end_offset = (current + diff) - end
+                end_offset = (current + diff) - end 
                 break
             i = i + 1
             current = current + diff
-        chunks_to_modify = feature_list[start_i:end_i]
-        interval = self.get_interval(chunks_to_modify[0])
-        new_first_entry = {chunks_to_modify[0].keys()[0] : (interval[0], interval[0] + start_offset)}
-        interval = self.get_interval(chunks_to_modify[-1])
-        new_second_entry = {chunks_to_modify[-1].keys()[0]: (interval[1] - end_offset, interval[1])}
-        # feature_list[start_i:end_i] = [new_first_entry, new_second_entry]
-        return [new_first_entry, new_second_entry]
+        if start_i == end_i:
+            chunks_to_modify = [feature_list[start_i]]
+        else:
+            chunks_to_modify = feature_list[start_i:end_i]
+        new_first_entry = None
+        new_second_entry = None
+        if start_offset >= 0:
+            interval = self.get_interval(chunks_to_modify[0])
+            new_first_entry = {chunks_to_modify[0].keys()[0] : (interval[0], interval[0] + start_offset)}
+        if end_offset >= 0:
+            interval = self.get_interval(chunks_to_modify[-1])
+            new_second_entry = {chunks_to_modify[-1].keys()[0]: (interval[1] - end_offset, interval[1])}
+            # feature_list[start_i:end_i] = [new_first_entry, new_second_entry]
+
+        return_list = feature_list[:start_i] + [new_first_entry, new_second_entry] + feature_list[end_i + 1:]
+        return [i for i in return_list if i != None] 
 
     def track_snv(self, mutable_seq, start, new_base):
         mutable_seq[start] = new_base
         return mutable_seq
 
-    def find_chunks(feature_list, start, end)
-        current = 0
-        i = 0
-        while True:
-            diff = np.abs(feature_list[i][0] - feature_list[i][1]) 
-            if start < current + diff:
-                start_i = i
-            if end < current + diff:
-                end_i = i
-            i = i + 1
-            current = current + diff
-        return feature_list[start_i:end_i]
+    #def find_chunks(feature_list, start, end)
+    #    current = 0
+    #    i = 0
+    #    while True:
+    #        diff = np.abs(feature_list[i][0] - feature_list[i][1]) 
+    #        if start < current + diff:
+    #            start_i = i
+    #        if end < current + diff:
+    #            end_i = i
+    #        i = i + 1
+    #        current = current + diff
+    #    return feature_list[start_i:end_i]
 
     def track_insertion(self, mutable_seq, start, new_seq):
         return mutable_seq[:start] + new_seq +  mutable_seq[start:]
