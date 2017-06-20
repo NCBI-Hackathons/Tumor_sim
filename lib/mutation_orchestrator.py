@@ -33,7 +33,7 @@ class Mutation_Orchestrator:
     def pick_chromosomes(self, genome, number=1, replace=True):
         relative_lengths = np.array([len(genome[x]) for x in genome])
         probabilities = relative_lengths / float(relative_lengths.sum())
-        chroms = np.random.choice(genome.keys(), number, replace=replace,p=probabilities.tolist())
+        chroms = np.random.choice(list(genome.keys()), number, replace=replace,p=probabilities.tolist())
         return chroms
 
     def get_location_on_sequence(self, seq, distribution='uniform'):
@@ -101,7 +101,7 @@ class Mutation_Orchestrator:
         return genome
 
     def generate_structural_variations(self, genome, number):
-        variations = np.random.choice(self.structural_variations_probabilities.keys(),
+        variations = np.random.choice(list(self.structural_variations_probabilities.keys()),
          number, self.structural_variations_probabilities.values())
         mutated_genome = genome
         for variation in variations:
