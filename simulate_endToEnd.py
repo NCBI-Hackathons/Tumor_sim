@@ -4,15 +4,16 @@ import copy
 import pandas as pd
 import re
 
-input_reference_fasta_file = '../data/subsampled_hg38.fa'
-number_snvs = 3000000  
-number_indels = 415000
-number_of_tumorSVs = 10000
-default_mutation_distribution = [0.0128581801, 0.06207355415,0.0207684654,0.0550011073,0.011549004667,0.33774968825,0.33774968825,0.011549004667,0.0550011073,0.0207684654,0.06207355415,0.0128581801]
-output_normal_fasta_file = 'tests/normalsim.fasta'
+input_reference_fasta_file = "../data/small_hg19.fa"
+number_snvs = 30 
+number_indels = 415
+number_of_tumorSVs = 100
+output_normal_fasta_file = "tests/normalsim.fasta"
 output_tumor_fasta_file = "tests/tumorsim.fasta'"
 output_normal_bedfile = "tests/normal.bed"
 output_tumor_bedfile = "tests/tumor.bed"
+default_mutation_distribution = [0.0128581801, 0.06207355415,0.0207684654,0.0550011073,0.011549004667,0.33774968825,0.33774968825,0.011549004667,0.0550011073,0.0207684654,0.06207355415,0.0128581801]
+
 
 def write_fasta(genome, output_fasta_file):  
     # write fasta
@@ -24,6 +25,17 @@ def write_fasta(genome, output_fasta_file):
 
     with open(output_fasta_file, "w") as output_handle:
         SeqIO.write(output_seqs, output_handle, "fasta")
+
+
+def count_trailing_N_characters(sequence):
+    startc = 0
+    lastc = 0
+    for chrom in sequence:
+        while sequence[chrom][0] == 'N':
+            startc += 1
+        while sequence[chrom][-1] == 'N':
+            lastc += 1
+    return [startc,lastc]
 
 def remove_trailing_N_characters(sequence):
     for chrom in sequence:
@@ -51,6 +63,7 @@ def write_bed(dframe, path):
 
 def main():
     # read genome fasta
+    trailing_N_characters[seq_record.id] = count_trailing_N_characters(seq_record.seq.tomutable())
     mutated_genome = read_fasta_normal(input_reference_fasta_file)
 
     orchestrator = Mutation_Orchestrator()
