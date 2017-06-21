@@ -50,11 +50,15 @@ def subtract_beds(bed1, bed2):
     return bed1[~(bed1['uid'].isin(bed2['uid']))]
 
 def write_bed(genome_offset, dframe, path):
-    corrected_bed = offset_bed(dframe)
+    corrected_bed = offset_bed(dframe, genome_offset)
     corrected_bed.to_csv(genome_offset, path, index=False)
 
-def offset_bed(dframe):
-    return dframe
+def offset_bed(df, genome_offset):
+    for chrom in genome_offset:
+        per_chrom = df[df['chrom'] == chrom]
+        df.ix[per_chrom.index, 'end'] += genome_offset[chrom]
+        df.ix[per_chrom.index, 'start'] += genome_offset[chrom]
+    return df
 
 def main():
     # read genome fasta
@@ -71,7 +75,6 @@ def main():
     write_fasta(indeled_genome, output_normal_fasta_file)
     indel_bed = orchestrator.get_pandas_dataframe()
     write_bed(genome_offset, indel_bed, output_normal_bedfile)   ### write out "normalsim" bedpe
-
 
     # add structural varations
     orchestrator.generate_structural_variations(mutated_genome, number_of_tumorSVs)

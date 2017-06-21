@@ -55,7 +55,7 @@ class TestSimulateNormal(unittest.TestCase):
         first_bed = pd.DataFrame(lists)
         first_bed.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
 
-        corrected_bed = simulate_endToEnd.offset_bed(first_bed)
+        corrected_bed = simulate_endToEnd.offset_bed(first_bed, genome_offset)
         lists = [['chr2', 12, 13, 'insertion', 'AAA', 2],['chr1', 10, 19, 'inversion', '-', 0]]
         expected_df = pd.DataFrame(lists)
         expected_df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
