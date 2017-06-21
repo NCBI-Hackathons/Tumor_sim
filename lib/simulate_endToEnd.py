@@ -1,6 +1,7 @@
 from Bio import SeqIO
 from mutation_orchestrator import Mutation_Orchestrator
 import copy
+import pandas as pd
 import re
 
 input_reference_fasta_file = '../data/subsampled_hg38.fa'
@@ -9,7 +10,8 @@ number_indels = 415000
 number_of_tumorSVs = 10000
 output_normal_fasta_file = 'tests/normalsim.fasta'
 output_tumor_fasta_file = "tests/tumorsim.fasta'"
-output_bedfile = "tests/output.bed"
+output_normal_bedfile = "tests/normal.bed"
+output_tumor_bedfile = "tests/tumor.bed"
 
 def write_fasta(genome, output_fasta_file):  
     # write fasta
@@ -40,6 +42,13 @@ def read_fasta_normal(input_fasta_file):
                     if re.match('^[a-z]{3}\d{1,2}$', k, re.IGNORECASE) or k in ["chrX", "chrY"]}
     return genome
 
+def subract_beds(bed1, bed2):
+    return bed1[~(bed1['uid'].isin(bed2['uid']))]
+
+def write_bed(dframe, path):
+    dframe.to_csv(path, index=False)
+
+    
 
 
 def main():
@@ -56,14 +65,16 @@ def main():
     indeled_genome = orchestrator.generate_fasta(mutated_genome)
     write_fasta(indeled_genome, output_normal_fasta_file)
     indel_bed = orchestrator.get_pandas_dataframe
-    write_bed(indel_bed)   ### write out "normalsim" bedpe
+    write_bed(indel_bed, output_normal_bedfile)   ### write out "normalsim" bedpe
 
     # add structural varations
     orchestrator.generate_structural_variations(mutated_genome, number_of_tumorSVs)
     mutated_genome = orchestrator.generate_fasta(mutated_genome)
     write_fasta(mutated_genome, output_tumor_fasta_file)
 
-    write_bed(orchestrator.get_pandas_dataframe)  ### write out "tumorsim" bedpe
+    tumor_bed = orchestrator.get_pandas_dataframe
+    tumor_bed = subtract_bed(tumor_bed, indel_bed)
+    write_bed(tumor_bed, output_tumor_bedfile)  ### write out "tumorsim" bedpe
 
 if __name__ == "__main__":
     main()
