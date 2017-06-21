@@ -95,7 +95,7 @@ if __name__ == "__main__":
     parser.add_argument('--output_tumor_fasta',
                         default="tests/tumorsim.fasta",
                         help='file path for the output tumor (cancer genome) fasta')
-    parser.add_argument('--output_normal_fasta,
+    parser.add_argument('--output_normal_fasta',
                         default = "tests/normalsim.fasta",
                         help='file path for the output normal (SNV-added) fasta')
     args = vars(parser.parse_args())
