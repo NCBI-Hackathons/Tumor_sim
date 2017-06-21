@@ -4,11 +4,11 @@ import copy
 import pandas as pd
 import re
 
-input_reference_fasta_file = '../data/subsampled_hg38.fa'
-number_snvs = 3000000  
-number_indels = 415000
-number_of_tumorSVs = 10000
-output_normal_fasta_file = 'tests/normalsim.fasta'
+input_reference_fasta_file = "../data/small_hg19.fa"
+number_snvs = 30 
+number_indels = 415
+number_of_tumorSVs = 100
+output_normal_fasta_file = "tests/normalsim.fasta"
 output_tumor_fasta_file = "tests/tumorsim.fasta'"
 output_normal_bedfile = "tests/normal.bed"
 output_tumor_bedfile = "tests/tumor.bed"
