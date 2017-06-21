@@ -17,13 +17,32 @@ Be sure to have the required dependencies installed first on your system.
 ```
 
 ## Usage
-The user must first provide their reference genome in FASTA format as input file to simulate_endToEnd.py
+The user can provide their reference genome in FASTA format as input file to simulate_endToEnd.py, or use our default example fasta.
 
 ```
 > cd lib
 > python simulate_endToEnd.py 
 > or (optional)
 > python simulate_endToEnd.py [-usage] <path/to/input_file>
+```
+
+To view the help options, type -h:
+```
+>python simuate_endToEnd.py -h
+Usage: simulate_endToEnd.py [-h] [--input_fasta INPUT_FASTA]
+                            [--output_tumor_fasta OUTPUT_TUMOR_FASTA]
+                            [--output_normal_fasta OUTPUT_NORMAL_FASTA]
+
+Simulate cancer genomic structural variations
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --input_fasta INPUT_FASTA
+                        file path for the input (default genome) fasta
+  --output_tumor_fasta OUTPUT_TUMOR_FASTA
+                        file path for the output tumor (cancer genome) fasta
+  --output_normal_fasta OUTPUT_NORMAL_FASTA
+                        file path for the output normal (SNV-added) fasta
 ```
 
 ### How it works
