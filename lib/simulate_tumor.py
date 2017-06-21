@@ -23,7 +23,6 @@ def read_fasta_tumor(normal_genome, tumor_genome):
         tumor_genome[seq_record.id] = seq_record 
 
 
-
 def main():
     # read genome fasta
     normal_genome = {}
@@ -34,12 +33,12 @@ def main():
     orchestrator = Mutation_Orchestrator()
 
     # add SNVs
-    mutated_genome = orchestrator.snv_fast(mutated_genome, number_snvs)
+    tumor_genome = orchestrator.snv_fast(tumor_genome, number_snvs)
 
     # add structural varations
-    mutated_genome = orchestrator.generate_structural_variations(mutated_genome, 10000)
+    tumor_genome = orchestrator.generate_structural_variations(tumor_genome, 10000)
 
-    write_fasta(mutated_genome)
+    write_fasta(tumor_genome)
 
 if __name__ == "__main__":
     main()
