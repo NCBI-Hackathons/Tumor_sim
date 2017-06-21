@@ -31,7 +31,7 @@ Be sure to have the required dependencies installed first on your system.
 simulate_normal.py calls upon mutation_orchestra.py to generate the random mutations for the normal unique genome case.
 mutation_orchestra.py uses the lower level mutation_creator.py for the simpler mutations and logs the distinction of indels, translocations, duplications and inversions.
 ###### simulate_tumor.py
-User-adjusted parameters will also be accounted for in both cases, including [COSMIC signatures (http://cancer.sanger.ac.uk/cosmic/signatures).
+In the future, user-adjusted parameters will also be accounted for, including [COSMIC signatures](http://cancer.sanger.ac.uk/cosmic/signatures).
 
 ## Test
 A subsampled version of hg38 is also provided in the [data folder](https://github.com/NCBI-Hackathons/Tumor_sim/tree/master/data) of this repository.
