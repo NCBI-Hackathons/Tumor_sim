@@ -20,20 +20,35 @@ def write_fasta(mutated_genome):
     with open(output_fasta_file, "w") as output_handle:
         SeqIO.write(output_seqs, output_handle, "fasta")
 
-def remove_trailing_N_characters(sequence):
+def count_trailing_N_characters(sequence):
+    startc = 0
+    lastc = 0
     for chrom in sequence:
         while sequence[chrom][0] == 'N':
+            startc += 1
+        while sequence[chrom][-1] == 'N':
+            lastc += 1
+    return [startc,lastc]
+
+def remove_trailing_N_characters(sequence):
+    for chrom in sequence:
+        startc = 0
+        while sequence[chrom][0] == 'N':
+            startc += 1
             sequence[chrom].pop(0)
+        lastc = 0
         while sequence[chrom][-1] == 'N':
             sequence[chrom].pop(-1)
+            lastc += 1
     return sequence
 
 def main():
-    # read genome fasta
     original_genome = {}
+    trailing_N_characters = {}
     mutated_genome = {}
     for seq_record in SeqIO.parse(input_fasta_file, "fasta"):
         original_genome[seq_record.id] = seq_record
+        trailing_N_characters[seq_record.id] = count_trailing_N_characters(seq_record.seq.tomutable())
         mutated_genome[seq_record.id] = remove_trailing_N_characters(seq_record.seq.tomutable())
 
     orchestrator = Mutation_Orchestrator()
@@ -42,6 +57,7 @@ def main():
     mutated_genome = orchestrator.snv_fast(mutated_genome, number_snvs)
 
     # add structural varations
+    # read ge
     mutated_genome = orchestrator.generate_structural_variations(mutated_genome, 10000)
 
     write_fasta(mutated_genome)
