@@ -72,11 +72,20 @@ class TestMutationTracker(unittest.TestCase):
         self.assertEqual(new_genome, expected_genome)
         lists = [['chr2', 6, 7, 'insertion', 'AAA', 2],['chr1', 6, 15, 'inversion', '-', 0]]
         expected_df = pd.DataFrame(lists)
-        expected_df.columns = ['chrom', 'start', 'end', 'name', 'ALT', 'uid']
+        expected_df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
         expected_df.index = [2,0]
         
         self.assertTrue(expected_df.equals(self.mc.log_data_frame))
 
+    def test_duplication(self):
+        self.mc.create_insertion('chr2', start=6, new_seq = 'AAA', name = 'duplication')
+        new_genome = self.mc.collapse_list(self.genome)
+        self.assertEqual(new_genome['chr2'], MutableSeq("ACTCGTAAACGTC", generic_dna))
+        lists = [['chr2', 6, 7, 'duplication', 'AAA', 0]]
+        expected_df = pd.DataFrame(lists)
+        expected_df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
+        self.assertTrue(expected_df.equals(self.mc.log_data_frame))
+        
 
     def tst_deletion_outside_range(self):
         my_seq = MutableSeq("AAAAAA", generic_dna)

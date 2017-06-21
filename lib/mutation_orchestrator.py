@@ -81,12 +81,16 @@ class Mutation_Orchestrator:
         z = np.random.geometric(p, size=number)
         return z[0]
 
-    # Duplication currently only goes one direction (forward)
+    # Duplication currently only goes one direction (forward) 
+    # Creates a variable amount of duplications (num_duplications, drawn from geometric dist)
     def orchestrate_duplication(self, genome, distribution='uniform'):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
         end = start + self.get_event_length(p=0.001)
-        self.tracker.create_insertion(chrom, start, genome[chrom][start:end], name='duplication')
+        num_duplications = self.get_event_length(p=0.6) # exponential ranging from 1 to 10
+        new_seq = str(genome[chrom][start:end]) * num_duplications
+        self.tracker.create_insertion(chrom, start, new_seq,
+             name='duplication (times {})'.format(num_duplications))
         logging.info('Orchestrated duplication at position {} to {} on chrom {}'.format(start, end, chrom))
         return genome
 
@@ -142,7 +146,7 @@ class Mutation_Tracker:
     def create_insertion(self, chrom, start, new_seq, func='insertion', name='insertion'):
         func_params = [chrom, start, new_seq]
         uid = len(self.list)
-        self.list.append([chrom, start, start+1, name, new_seq, uid])
+        self.list.append([chrom, start, start+1, name, str(new_seq), uid])
         self.function_dict[uid] = {'func':self.mutation_functions[func], 'params':func_params}
 
     def create_deletion(self, chrom, start, end, func='deletion', name='deletion'):
@@ -175,7 +179,7 @@ class Mutation_Tracker:
 
     def collapse_list(self, genome):
         self.log_data_frame = pd.DataFrame(self.list)
-        self.log_data_frame.columns = ['chrom', 'start', 'end', 'name', 'ALT', 'uid']
+        self.log_data_frame.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
         self.log_data_frame = self.log_data_frame.sort_values(['chrom', 'end'], ascending = False)
         previous_starts = {}
         for chrom in genome:
