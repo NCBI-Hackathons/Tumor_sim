@@ -72,6 +72,7 @@ def main():
     indel_bed = orchestrator.get_pandas_dataframe()
     write_bed(genome_offset, indel_bed, output_normal_bedfile)   ### write out "normalsim" bedpe
 
+
     # add structural varations
     orchestrator.generate_structural_variations(mutated_genome, number_of_tumorSVs)
     mutated_genome = orchestrator.generate_fasta(mutated_genome)
@@ -80,6 +81,7 @@ def main():
     tumor_bed = orchestrator.get_pandas_dataframe()
     tumor_bed = subtract_beds(tumor_bed, indel_bed)
     write_bed(genome_offset, tumor_bed, output_tumor_bedfile)  ### write out "tumorsim" bedpe
+
 
 if __name__ == "__main__":
     main()

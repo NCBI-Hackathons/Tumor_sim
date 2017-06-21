@@ -82,4 +82,3 @@ class TestMutationCreator(unittest.TestCase):
         expected_seq2 = MutableSeq("CCAC", generic_dna)
         self.assertEqual(new_seq1, expected_seq1)
         self.assertEqual(new_seq2, expected_seq2)
-

@@ -70,9 +70,12 @@ class Mutation_Orchestrator:
         start_target = self.get_location_on_sequence(genome[chrom_target])
         source_event_length = self.get_event_length(p=0.001)
         target_event_length = self.get_event_length(p=0.001)
-        #(genome[chrom_source], genome[chrom_target]) = self.tracker.create_translocation(
-        #    genome[chrom_source],
-        # genome[chrom_target], start_source, start_target, source_event_length, target_event_length)
+        end_source = start_source+source_event_length
+        end_target = start_target+target_event_length
+        new_seq_source = genome[chrom_target][start_target:end_target]
+        new_seq_target = genome[chrom_source][start_source:end_source]
+        self.tracker.create_translocation(chrom_source, chrom_target, start_source,
+                        start_target, end_source, end_target, new_seq_source, new_seq_target)
         logging.info('Orchestrated translocation at position {} of length {} on chrom {} to position {} of length {} on chrom {}'.format(
             start_source, source_event_length, chrom_source, start_target, target_event_length, chrom_target))
 
@@ -82,7 +85,7 @@ class Mutation_Orchestrator:
         z = np.random.geometric(p, size=number)
         return z[0]
 
-    # Duplication currently only goes one direction (forward) 
+    # Duplication currently only goes one direction (forward)
     # Creates a variable amount of duplications (num_duplications, drawn from geometric dist)
     def orchestrate_duplication(self, genome, distribution='uniform'):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
@@ -98,7 +101,6 @@ class Mutation_Orchestrator:
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
         end = start + self.get_event_length(p=0.001)
-        #genome[chrom] = self.creator.create_inversion(genome[chrom], start, end)
         self.tracker.create_inversion(chrom, start, end)
         logging.info('Orchestrated inversion at position {} to {} on chrom {}'.format(start, end, chrom))
 
@@ -109,7 +111,6 @@ class Mutation_Orchestrator:
         new_seq_start = self.get_location_on_sequence(genome[chrom])
         new_seq_end = new_seq_start + event_length
         new_seq = genome[chrom][new_seq_start:new_seq_end]
-        #genome[chrom] = self.creator.create_insertion(genome[chrom], start, new_seq)
         self.tracker.create_insertion(chrom, start, new_seq)
         logging.info('Orchestrated insertion at position {} on chrom {} adding bases from position {} to {}'.format(start,
          chrom, new_seq_start, new_seq_end))
@@ -131,8 +132,13 @@ class Mutation_Orchestrator:
         return self.tracker.collapse_list(genome)
 
     def get_pandas_dataframe(self):
-        return self.tracker.log_data_frame
+        return self.bed_correct(self.tracker.log_data_frame.copy())
 
+    # We need to store insertions as same start and end. Let's correct that when outputting bed files
+    def bed_correct(self, df):
+        same_vals = df[df['start'] == df['end']]
+        df.ix[same_vals.index, 'end'] +=1
+        return df
 
 class Mutation_Tracker:
 
@@ -153,7 +159,7 @@ class Mutation_Tracker:
     def create_insertion(self, chrom, start, new_seq, func='insertion', name='insertion'):
         func_params = [chrom, start, new_seq]
         uid = len(self.list)
-        self.list.append([chrom, start, start+1, name, str(new_seq), uid])
+        self.list.append([chrom, start, start, name, str(new_seq), uid])
         self.function_dict[uid] = {'func':self.mutation_functions[func], 'params':func_params}
 
     def create_deletion(self, chrom, start, end, func='deletion', name='deletion'):
@@ -168,29 +174,27 @@ class Mutation_Tracker:
         self.list.append([chrom, start, end, name, '-', uid])
         self.function_dict[uid] = {'func':self.mutation_functions[func], 'params':func_params}
 
-    def create_translocation(self, chrom_source, chrom_target, start_source, start_target, end_source,
-                end_target, source_event_length, target_event_length, name='translocation'):
+    def create_translocation(self, chrom_source, chrom_target, start_source, start_target,
+                end_source, end_target, new_seq_source, new_seq_target):
         uid = len(self.list)
-        end_source = start_source+source_event_length
-        end_target = start_target+target_event_length
         # Deletions
         self.create_deletion(chrom_source, start_source, end_source, name='translocation(del)')
         self.create_deletion(chrom_target, start_target, end_target, name='translocation(del)')
-
-        name_insertion_source = ''.join('translocation(', chrom_target, ':', str(start_target), '-', str(end_target), ')')
-        name_insertion_target = ''.join('translocation(', chrom_source, ':', str(start_source), '-', str(end_source), ')')
-
-        self.create_insertion(chrom_source, start_source, seq1, name=name_insertion_source) #???
-        self.create_insertion(chrom_target, start_target, seq2, name=name_insertion_end) #???
+        # names for insertions translocation(chrom:start-end)
+        name_insertion_source = ''.join(['translocation(', chrom_target, ':', str(start_target), '-', str(end_target), ')'])
+        name_insertion_target = ''.join(['translocation(', chrom_source, ':', str(start_source), '-', str(end_source), ')'])
+        # insertions
+        self.create_insertion(chrom_source, start_source, new_seq_source, name=name_insertion_source)
+        self.create_insertion(chrom_target, start_target, new_seq_target, name=name_insertion_target)
 
 
     def collapse_list(self, genome):
         self.log_data_frame = pd.DataFrame(self.list)
         self.log_data_frame.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
-        self.log_data_frame = self.log_data_frame.sort_values(['chrom', 'end'], ascending = False)
+        self.log_data_frame = self.log_data_frame.sort_values(['chrom', 'start', 'end'], ascending = [False, False, False])
         previous_starts = {}
         for chrom in genome:
-            previous_starts[chrom] = float('Inf') 
+            previous_starts[chrom] = float('Inf')
 
         mutable_genome = genome
         for idx, row in self.log_data_frame.iterrows():
