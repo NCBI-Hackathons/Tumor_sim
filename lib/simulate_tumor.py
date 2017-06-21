@@ -16,10 +16,30 @@ def write_fasta(mutated_genome):
         SeqIO.write(output_seqs, output_handle, "fasta")
 
 
-def read_fasta():
-    original_genome = {} 
+def read_fasta_tumor(normal_genome, tumor_genome):
     ### takes some time to load entire 3GB hg38 into memory; possible performance problem
     for seq_record in SeqIO.parse(input_fasta_file, "fasta"):
-        original_genome[seq_record.id] = seq_record.upper() ## make all characters upper-case
-    ## remove all 'useless' chromosomes, i.e. must match chrX, chrY or "^[a-z]{3}\d{1,2}$"
-    original_genome = {k: v for k, v in original_genome.items() if re.match('^[a-z]{3}\d{1,2}$', k, re.IGNORECASE) or k in ["chrX", "chrY"]}
+        normal_genome[seq_record.id] = seq_record 
+        tumor_genome[seq_record.id] = seq_record 
+
+
+
+def main():
+    # read genome fasta
+    normal_genome = {}
+    tumor_genome = {}
+ 
+    read_fasta_tumor(original_genome, mutated_genome)
+
+    orchestrator = Mutation_Orchestrator()
+
+    # add SNVs
+    mutated_genome = orchestrator.snv_fast(mutated_genome, number_snvs)
+
+    # add structural varations
+    mutated_genome = orchestrator.generate_structural_variations(mutated_genome, 10000)
+
+    write_fasta(mutated_genome)
+
+if __name__ == "__main__":
+    main()
