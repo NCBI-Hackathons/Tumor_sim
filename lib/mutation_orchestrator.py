@@ -34,6 +34,9 @@ class Mutation_Orchestrator:
             logging.info('Added base {} at position {} in chrom {}'.format(new_bases[i], str(start), chroms[i]))
         return genome
 
+    def small_indels_fast(self, genome, number):
+        
+
     def pick_chromosomes(self, genome, number=1, replace=True):
         relative_lengths = np.array([len(genome[x]) for x in genome])
         probabilities = relative_lengths / float(relative_lengths.sum())
