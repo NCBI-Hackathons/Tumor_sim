@@ -61,6 +61,7 @@ class TestMutationTracker(unittest.TestCase):
     # DIFFERENT RESULT!
 
     def test_multiple_structural_variations(self):
+        import pdb; pdb.set_trace()
         self.mc.create_inversion('chr1', start=6, end=15)
         self.mc.create_deletion('chr1', start=4, end=7)
         self.mc.create_insertion('chr2', start=6, new_seq = 'AAA')

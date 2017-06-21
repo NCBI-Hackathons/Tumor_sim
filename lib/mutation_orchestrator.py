@@ -177,21 +177,22 @@ class Mutation_Tracker:
         self.log_data_frame = pd.DataFrame(self.list)
         self.log_data_frame.columns = ['chrom', 'start', 'end', 'name', 'ALT', 'uid']
         self.log_data_frame = self.log_data_frame.sort_values(['chrom', 'end'], ascending = False)
-        previous_start = float('Inf')
+        previous_starts = {}
+        for chrom in genome:
+            previous_starts[chrom] = float('Inf') 
 
         mutable_genome = genome
         for idx, row in self.log_data_frame.iterrows():
-            import pdb; pdb.set_trace()
             # Logic for avoiding overlaps
             uid = row.uid
-            if row.end <= previous_start:
+            chrom = row.chrom
+            if row.end <= previous_starts[chrom]:
                 # Have to modify the parameters because the mutable seq needs to get passed in
                 mutable_params = self.function_dict[uid]['params']
-                chrom = mutable_params[0]
                 mutable_params[0] = genome[chrom]
                 mutable_genome[chrom] = self.function_dict[uid]['func'](*mutable_params)
             else:
                 # Drop row from DataFrame
                 self.log_data_frame = self.log_data_frame.drop(idx, axis=0)
-            previous_start = row.start
+            previous_starts[chrom] = row.start
         return(mutable_genome)
