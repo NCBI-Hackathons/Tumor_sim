@@ -120,12 +120,12 @@ class Mutation_Orchestrator:
 
     # Create small insertions and small deletions
     def generate_indels(self, genome, number):
-        variations = np.random.choice(list(['insertion', 'deletion'], number))
+        variations = np.random.choice(list(['insertion', 'deletion']), number)
         for variation in variations:
             self.structural_variations[variation](genome, p=0.6)
 
     # Actually collapses the list of changes
-    def generate_fasta(genome):
+    def generate_fasta(self, genome):
         return self.tracker.collapse_list(genome)
 
     def get_pandas_dataframe(self):
