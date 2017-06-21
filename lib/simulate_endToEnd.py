@@ -4,7 +4,8 @@ import copy
 import pandas as pd
 import re
 
-input_reference_fasta_file = "../data/subsampled_hg38.fa"
+# input_reference_fasta_file = "../data/subsampled_hg38.fa"
+input_reference_fasta_file = "../data/small_hg19.fa"
 number_snvs = 3000
 number_indels = 4150
 number_of_tumorSVs = 10000
