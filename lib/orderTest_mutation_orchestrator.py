@@ -25,7 +25,6 @@ class Mutation_Orchestrator:
 
     def snv_fast(self, genome, number):
         chroms = self.pick_chromosomes(genome, number)
-        ### assume for normal bases 
         new_bases = np.random.choice(['A', 'C', 'T', 'G'], number, [0.25, 0.25, 0.25, 0.25])
         for i in range(number):
             start = self.get_location_on_sequence(genome[chroms[i]])
@@ -47,7 +46,126 @@ class Mutation_Orchestrator:
                 if seq[location] != 'N':
                     return location
         else:
-            raise NotImplementedError('Only Uniform is implemented!'
+            raise NotImplementedError('Only Uniform is implemented!')
+
+### assume chr1----implement a dictionary for each chromosome, with value 0
+length_normal_deletions_implemented = 0
+
+    def orchestrate_normal_deletion(self, seq, distribution="uniform"):        
+        """
+        Keep track of function calls, and iterate by chromosome.
+        For each function call, execute `len(seq)-# of deletions`
+        When calling this function, do not randomly choose chromosomes! 
+        Tracking the # of function calls would make no sense!
+        IDEA: posisbly use `from collections import Counter` to keep track of Chromosomes
+        """
+         ### implement this by chromosome
+         ### now assume only chr1 seq
+        chrom = "chr1"
+        if distribution == "uniform":
+            ## avoid telomere sequences/other masks
+            while True:
+                start = np.random.randint(int(len(seq) - length_normal_deletions_implemented))
+                if seq[start] != "N":
+                    end = start + self.get_event_length()
+                    length_normal_deletions_implemented += end   ## length of event
+                    ## now, do this ~10K times for chromosome, and sort these events.
+                    ### after sorting, when you implement the mutation, record it in a VCF
+                    ###genome[chrom] = self.creator.create_deletion(genome[chrom], start, end)
+                    logging.info('Orchestrated deletion from {} to {} in chrom {}'.format(start, end, chrom))
+                    return genome
+        else:
+            raise NotImplementedError("We've only implemented a uniform distribution of Dels!")
+
+### implement a dictinoary: keys of chromsosomes, values of [0]
+
+length_normal_insertions_implemented = 0
+
+    def orchestrate_normal_insertion(self, seq distribution="uniform"):        
+        """
+        Keep track of function calls, and iterate by chromosome.
+        For each function call, execute `len(seq) + # of insertions`
+        When calling this function, do not randomly choose chromosomes! 
+        Tracking the # of function calls would make no sense!
+        IDEA: posisbly use `from collections import Counter` to keep track of Chromosomes
+        """
+         ### implement this by chromosome
+         ### now assume only chr1 seq
+        chrom = "chr1"
+        if distribution == "uniform":
+            ## avoid telomere sequences/other masks
+            while True:
+                start = np.random.randint(int(len(seq) + length_normal_insertions_implemented)
+                if seq[start] != "N":
+                    end = start + self.get_event_length()
+                    length_normal_insertions_implemented += end   ### length of event
+                    genome[chrom] = self.creator.create_deletion(genome[chrom], start, end)
+                    logging.info('Orchestrated insertion from {} to {} in chrom {}'.format(start, end, chrom))
+                    return genome
+        else:
+            raise NotImplementedError("We've only implemented a uniform distribution of Insertions!")
+
+
+
+### Now, fix the dictionary problem:
+### It doesn't matter what the dicitonary keys are for the input FASTA
+### Begin by creating two dictionaries:
+### -- normal_insert_length_dict 
+### -- tumor_insert_length_dict
+### Create the keys from FASTA dictionary, 'original_genome' (?), and give these dicitionaries these keys
+### Then initialize each value = 0 
+### 
+### original dictionary from FASTA is 'genome'; CHECK
+
+
+## dictionary with keys from FASTA dictionary, values = 0
+
+insertion_length_tracker = { k: 0 for k in genome.iteritems()} 
+
+deletion_length_tracker = {k: 0 for k in genome.iteritems()}
+
+### do SNPS first, then insertions, then deletions
+
+### do this by chromosome
+### create a list of tuples s.t. (start, end) for each
+### then sort, and apply at once
+
+    def orchestrate_normal_insertion(self, seq distribution="uniform"):        
+        """
+        Keep track of function calls, and iterate by chromosome.
+        For each function call, execute `len(seq) + # of insertions`
+        When calling this function, do not randomly choose chromosomes! 
+        Tracking the # of function calls would make no sense!
+        IDEA: posisbly use `from collections import Counter` to keep track of Chromosomes
+        """
+        ## chrom = self.pick_chromosomes(genome)[0]   ## get random chromosome
+        if distribution == "uniform":
+            ## avoid telomere sequences/other masks
+            while True:
+                start = np.random.randint(int(len(seq) + insertion_length_tracker[chrom])
+                if seq[start] != "N":
+                    length = self.get_event_length()
+                    end = start + length
+                    insertion_length_tracker[chrom] += length   ### add length of event
+                    ### create list of tuples, s.t. tuple = (start, end)
+                    ### sort list of tuples 
+                    ### implement rearrangmenets by largest coordinate to smallest
+                    genome[chrom] = self.creator.create_deletion(genome[chrom], start, end)
+                    ### write this into a VCF
+                    logging.info('Orchestrated insertion from {} to {} in chrom {}'.format(start, end, chrom))
+                    return genome
+        else:
+            raise NotImplementedError("We've only implemented a uniform distribution of Insertions!")
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,15 +1,14 @@
 from Bio import SeqIO
 from mutation_orchestrator import Mutation_Orchestrator
 import copy
+import re
 
 input_fasta_file = '../data/subsampled_hg38.fa'
 number_snvs = 400000
-output_fasta_file = 'tests/output.fasta'
+output_fasta_file = 'tests/normalsim.fasta'
 
-def write_bam(mutated_genome):
-    raise NotImplementedError
 
-def write_fasta(mutated_genome):
+def write_fasta(mutated_genome):  
     # write fasta
     output_seqs = []
     for chrom in mutated_genome:
@@ -21,27 +20,22 @@ def write_fasta(mutated_genome):
         SeqIO.write(output_seqs, output_handle, "fasta")
 
 def remove_trailing_N_characters(sequence):
-
-
-"NNNNNNNNNAANNNNN"
-
-
-
-<<<<<<< HEAD
-    
-=======
     for chrom in sequence:
         while sequence[chrom][0] == 'N':
             sequence[chrom].pop(0)
         while sequence[chrom][-1] == 'N':
             sequence[chrom].pop(-1)
->>>>>>> 0a9075849fb99770037f8d7ec223d45263764c29
     return sequence
 
 def read_fasta():
     original_genome = {} 
+    ### takes some time to load entire 3GB hg38 into memory; possible performance problem
     for seq_record in SeqIO.parse(input_fasta_file, "fasta"):
-        original_genome[seq_record.id] = seq_record.upper() 
+        original_genome[seq_record.id] = seq_record.upper() ## make all characters upper-case
+    ## remove all 'useless' chromosomes, i.e. must match chrX, chrY or "^[a-z]{3}\d{1,2}$"
+    original_genome = {k: v for k, v in original_genome.items() if re.match('^[a-z]{3}\d{1,2}$', k, re.IGNORECASE) or k in ["chrX", "chrY"]}
+    
+
 
 def main():
     # read genome fasta
@@ -60,7 +54,7 @@ def main():
     mutated_genome = orchestrator.generate_structural_variations(mutated_genome, 10000)
 
     write_fasta(mutated_genome)
-    write_bam(mutated_genome)
 
 if __name__ == "__main__":
     main()
+
