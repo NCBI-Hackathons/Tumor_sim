@@ -27,23 +27,22 @@ def remove_trailing_N_characters(sequence):
             sequence[chrom].pop(-1)
     return sequence
 
-def read_fasta():
-    original_genome = {} 
+def read_fasta_normal(original_genome, mutated_genome):
     ### takes some time to load entire 3GB hg38 into memory; possible performance problem
     for seq_record in SeqIO.parse(input_fasta_file, "fasta"):
         original_genome[seq_record.id] = seq_record.upper() ## make all characters upper-case
+        mutated_genome[seq_record.id] = remove_trailing_N_characters(seq_record.seq.tomutable())
     ## remove all 'useless' chromosomes, i.e. must match chrX, chrY or "^[a-z]{3}\d{1,2}$"
     original_genome = {k: v for k, v in original_genome.items() if re.match('^[a-z]{3}\d{1,2}$', k, re.IGNORECASE) or k in ["chrX", "chrY"]}
-    
+    mutated_genome[seq_record.id] = remove_trailing_N_characters(seq_record.seq.tomutable())
 
 
 def main():
     # read genome fasta
     original_genome = {}
     mutated_genome = {}
-    for seq_record in SeqIO.parse(input_fasta_file, "fasta"):
-        original_genome[seq_record.id] = seq_record
-        mutated_genome[seq_record.id] = remove_trailing_N_characters(seq_record.seq.tomutable())
+    
+    read_fasta_normal(original_genome, mutated_genome)
 
     orchestrator = Mutation_Orchestrator()
 
