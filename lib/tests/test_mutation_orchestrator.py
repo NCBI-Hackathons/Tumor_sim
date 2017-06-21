@@ -38,7 +38,8 @@ class TestMutationOrchestrator(unittest.TestCase):
 
     def test_generate_structural_variations(self):
         number = 8 
-        self.mo.generate_structural_variations(self.genome, number)
+        s = self.mo.generate_structural_variations(self.genome, number)
+        self.assertEqual(None, s)
 
     def test_get_location_on_sequence(self):
         self.genome = {'chr1': MutableSeq("NANNNNNNNNN", generic_dna)}
