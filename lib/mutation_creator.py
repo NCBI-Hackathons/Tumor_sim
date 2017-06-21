@@ -5,20 +5,6 @@ class Mutation_Creator:
     def create_deletion(self, mutable_seq, start, end):
         return mutable_seq[:start] + mutable_seq[end:]
 
-    ### InDels in healthy genomes havee ~400-600K InDels, ~90% sized 1-9 bp, ~10 10-20 bp, sized up to 10Kb 
-    
-    def create_deletion(self, mutable_seq, start, end):
-        """
-        For each chromosome, create a range(start_of_mappable_sequence, end_of_mappable_sequence)
-        Check for base != 'N', two bases away, then create range(start, end)
-        Draw 200-300 positions in range(start, end)
-            For each position, draw 1-9 90% of the time, 10-20 10% of the time. Delete at end = start + draw
-        random.randrange(11) ### 1, 2, ..., 10; if 10, then range(
-        randint(start_mappable, end_mappable)
-        """
-        
-      
-
     def create_snv(self, mutable_seq, start, new_base):
         mutable_seq[start] = new_base
         return mutable_seq
