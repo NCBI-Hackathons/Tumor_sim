@@ -1,5 +1,5 @@
 # Tumor_sim
-Simulation of Tumor Genomes -- Initiated at the 2017 NYGC-NCBI Hackathon 
+A python package that simulates the structural variations of cancer genomes. -- Initiated at the 2017 NYGC-NCBI Hackathon 
 
 ### Background 
 There is no "ground truth" for detecting structural variations in cancer genomics. Complex rearrangements occur per individual cancer samples, with no distinction in the sequence of mutations (SNPs, copy number variations and indels to CNVs, transpositions, and duplication) that lead to any specific structural arrangement. Simulating the possible SNVs and CNVs in a unique variation of a reference genome followed by simulation tumor model of cancer-related variations will be beneficial in
