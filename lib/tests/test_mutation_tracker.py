@@ -2,6 +2,8 @@ import unittest
 from .. import mutation_orchestrator
 from Bio.Seq import MutableSeq
 from Bio.Alphabet import generic_dna
+import numpy as np
+import pandas as pd
 
 class TestMutationTracker(unittest.TestCase):
     def setUp(self):
@@ -61,14 +63,19 @@ class TestMutationTracker(unittest.TestCase):
     # DIFFERENT RESULT!
 
     def test_multiple_structural_variations(self):
-        import pdb; pdb.set_trace()
         self.mc.create_inversion('chr1', start=6, end=15)
         self.mc.create_deletion('chr1', start=4, end=7)
         self.mc.create_insertion('chr2', start=6, new_seq = 'AAA')
         new_genome = self.mc.collapse_list(self.genome)
-        expected_genome = {'chr1': MutableSeq("ACTCTGC", generic_dna),
+        expected_genome = {'chr1': MutableSeq("ACTCGTCTGC", generic_dna),
                            'chr2': MutableSeq("ACTCGTAAACGTC", generic_dna)}
         self.assertEqual(new_genome, expected_genome)
+        lists = [['chr2', 6, 7, 'insertion', 'AAA', 2],['chr1', 6, 15, 'inversion', '-', 0]]
+        expected_df = pd.DataFrame(lists)
+        expected_df.columns = ['chrom', 'start', 'end', 'name', 'ALT', 'uid']
+        expected_df.index = [2,0]
+        
+        self.assertTrue(expected_df.equals(self.mc.log_data_frame))
 
 
     def tst_deletion_outside_range(self):
