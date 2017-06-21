@@ -55,7 +55,8 @@ class Mutation_Orchestrator:
 
 
 
-    def orchestrate_deletion(self, genome, distribution='uniform'):
+    # Default to being a big deletion, but p=0.6 makes it a small deletion
+    def orchestrate_deletion(self, genome, distribution='uniform', p=0.001):
         chrom = self.pick_chromosomes(genome)[0]
         start = self.get_location_on_sequence(genome[chrom])
         end = start + self.get_event_length()
@@ -80,8 +81,7 @@ class Mutation_Orchestrator:
 
     # Models exponential decay, discretely, within a 1-10 range.
     # Expected value of event is 1/p
-    def get_event_length(self, p=0.6):
-        number = 1
+    def get_event_length(self, p=0.6, number = 1):
         z = np.random.geometric(p, size=number)
         return z[0]
 
@@ -105,10 +105,10 @@ class Mutation_Orchestrator:
         self.tracker.create_inversion(chrom, start, end)
         logging.info('Orchestrated inversion at position {} to {} on chrom {}'.format(start, end, chrom))
 
-    def orchestrate_insertion(self, genome, distribution='uniform'):
+    def orchestrate_insertion(self, genome, distribution='uniform', p=0.001):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
-        event_length = self.get_event_length(p=0.6)
+        event_length = self.get_event_length(p)
         new_seq_start = self.get_location_on_sequence(genome[chrom])
         new_seq_end = new_seq_start + event_length
         new_seq = genome[chrom][new_seq_start:new_seq_end]
@@ -122,6 +122,15 @@ class Mutation_Orchestrator:
                 number, self.structural_variations_probabilities.values())
         for variation in variations:
             self.structural_variations[variation](genome)
+
+    # Create small insertions and small deletions
+    def generate_indels(self, genome, number):
+        variations = np.random.choice(list(['insertion', 'deletion']), number)
+        for variation in variations:
+            self.structural_variations[variation](genome, p=0.6)
+
+    # Actually collapses the list of changes
+    def generate_fasta(self, genome):
         return self.tracker.collapse_list(genome)
 
     def get_pandas_dataframe(self):
