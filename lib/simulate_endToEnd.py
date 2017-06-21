@@ -9,7 +9,7 @@ number_snvs = 30
 number_indels = 415
 number_of_tumorSVs = 100
 output_normal_fasta_file = "tests/normalsim.fasta"
-output_tumor_fasta_file = "tests/tumorsim.fasta'"
+output_tumor_fasta_file = "tests/tumorsim.fasta"
 output_normal_bedfile = "tests/normal.bed"
 output_tumor_bedfile = "tests/tumor.bed"
 
