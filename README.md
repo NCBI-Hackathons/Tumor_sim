@@ -6,7 +6,7 @@ There is no "ground truth" for detecting structural variations in cancer genomic
 better understanding the pathways of cancer progression after a mutation event, as found in cell division, aneuploidy, and other relative phenomena.
 
 ### Goal
-Generate a simulated tumor genome, based on a simulated normal genome file created from a user-provided genome file as reference. 
+Generate a simulated tumor genome, based on a simulated normal genome BAM file created from a user-provided genome file as reference. 
 
 *Dependencies:* found in requirements.txt, please be sure to have them installed on your system. The software package is written in Python and contained in the [lib folder](https://github.com/NCBI-Hackathons/Tumor_sim/tree/master/lib). 
 ***
@@ -17,8 +17,8 @@ Be sure to have the required dependencies installed first on your system.
 ```
 
 ## Usage
-1. User must first provide their reference genome in FASTA format as input file to simulate_normal.py.
-2.The unique genome file from simulate_normal.py is given as input file for simulate_tumor.py.
+1. To run the simulator, the user must first provide their reference genome in FASTA format as input file to simulate_normal.py.
+2. Use the output BAM file from simulate_normal.py as the input file for simulate_tumor.py.
 
 ```
 > .~/simulate_normal.py [-usage] <path/to/input_file>
@@ -30,8 +30,8 @@ Be sure to have the required dependencies installed first on your system.
 ### How it works
 simulate_normal.py calls upon mutation_orchestra.py to generate the random mutations for the normal unique genome case.
 mutation_orchestra.py uses the lower level mutation_creator.py for the simpler mutations and logs the distinction of indels, translocations, duplications and inversions.
-###### simulate_tumor.py [not yet explained at this time 06/21/2017, 10:52AM]
-User-adjusted parameters will also be accounted for in both cases, including [COSMIC signatures (http://cancer.sanger.ac.uk/cosmic/signatures).
+###### simulate_tumor.py
+In the future, user-adjusted parameters will also be accounted for, including [COSMIC signatures](http://cancer.sanger.ac.uk/cosmic/signatures).
 
 ## Test
 A subsampled version of hg38 is also provided in the [data folder](https://github.com/NCBI-Hackathons/Tumor_sim/tree/master/data) of this repository.
