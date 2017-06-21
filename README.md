@@ -13,7 +13,7 @@ Generate a simulated tumor genome, based on a simulated normal genome BAM file c
 ## Installation
 Be sure to have the required dependencies installed first on your system.
 ```
->
+>pip install -r requirements.txt
 ```
 
 ## Usage
@@ -21,10 +21,10 @@ Be sure to have the required dependencies installed first on your system.
 2. Use the output BAM file from simulate_normal.py as the input file for simulate_tumor.py.
 
 ```
-> .~/simulate_normal.py [-usage] <path/to/input_file>
->
-> .~/simulate_tumor.py [-usage] <path/to/input_file>
->
+> cd lib
+> python simulate_endToEnd.py 
+> or (optional)
+> python simulate_endToEnd.py [-usage] <path/to/input_file>
 ```
 
 ### How it works
