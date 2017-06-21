@@ -5,9 +5,9 @@ import pandas as pd
 import re
 
 input_reference_fasta_file = "../data/subsampled_hg38.fa"
-number_snvs = 30 
-number_indels = 415
-number_of_tumorSVs = 100
+number_snvs = 3000
+number_indels = 4150
+number_of_tumorSVs = 10000
 output_normal_fasta_file = "tests/normalsim.fasta"
 output_tumor_fasta_file = "tests/tumorsim.fasta"
 output_normal_bedfile = "tests/normal.bed"
@@ -51,7 +51,7 @@ def subtract_beds(bed1, bed2):
 
 def write_bed(genome_offset, dframe, path):
     corrected_bed = offset_bed(dframe, genome_offset)
-    corrected_bed.to_csv(genome_offset, path, index=False)
+    corrected_bed.to_csv(path, index=False)
 
 def offset_bed(df, genome_offset):
     for chrom in genome_offset:
