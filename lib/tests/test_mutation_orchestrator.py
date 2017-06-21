@@ -31,5 +31,8 @@ class TestMutationOrchestrator(unittest.TestCase):
         location = self.mo.get_location_on_sequence(self.genome['chr1'], 'uniform')
         self.assertEqual(location, 10)
 
+    def test_orchestrate_translocation(self):
+        return
+
     def test_pick_chromosomes(self):
         return
