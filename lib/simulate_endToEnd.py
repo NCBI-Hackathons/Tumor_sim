@@ -3,14 +3,11 @@ from mutation_orchestrator import Mutation_Orchestrator
 import copy
 import pandas as pd
 import re
+import argparse
 
-# input_reference_fasta_file = "../data/subsampled_hg38.fa"
-input_reference_fasta_file = "../data/small_hg19.fa"
 number_snvs = 3000
 number_indels = 4150
 number_of_tumorSVs = 10000
-output_normal_fasta_file = "tests/normalsim.fasta"
-output_tumor_fasta_file = "tests/tumorsim.fasta"
 output_normal_bedfile = "tests/normal.bed"
 output_tumor_bedfile = "tests/tumor.bed"
 
@@ -61,7 +58,10 @@ def offset_bed(df, genome_offset):
         df.ix[per_chrom.index, 'start'] += genome_offset[chrom]
     return df
 
-def main():
+def main(args):
+    input_reference_fasta_file = args['input_fasta']
+    output_tumor_fasta_file = args['output_tumor_fasta']
+    output_normal_fasta_file = args['output_normal_fasta']
     # read genome fasta
     (mutated_genome, genome_offset) = read_fasta_normal(input_reference_fasta_file)
 
@@ -88,5 +88,15 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-
+    parser = argparse.ArgumentParser(description='Simulate cancer genomic structural variations')
+    parser.add_argument('--input_fasta', 
+                        default="../data/subsampled_hg38.fa",
+                        help='file path for the input (default genome) fasta')
+    parser.add_argument('--output_tumor_fasta',
+                        default="tests/tumorsim.fasta",
+                        help='file path for the output tumor (cancer genome) fasta')
+    parser.add_argument('--output_normal_fasta',
+                        default = "tests/normalsim.fasta",
+                        help='file path for the output normal (SNV-added) fasta')
+    args = vars(parser.parse_args())
+    main(args)
