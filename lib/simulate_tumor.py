@@ -29,7 +29,7 @@ def main():
     normal_genome = {}
     tumor_genome = {}
  
-    read_fasta_tumor(original_genome, mutated_genome)
+    read_fasta_tumor(normal_genome, tumor_genome)
 
     orchestrator = Mutation_Orchestrator()
 
