@@ -49,8 +49,12 @@ def read_fasta_normal(input_fasta_file):
 def subtract_beds(bed1, bed2):
     return bed1[~(bed1['uid'].isin(bed2['uid']))]
 
-def write_bed(dframe, path):
-    dframe.to_csv(path, index=False)
+def write_bed(genome_offset, dframe, path):
+    corrected_bed = offset_bed(dframe)
+    corrected_bed.to_csv(genome_offset, path, index=False)
+
+def offset_bed(dframe):
+    return dframe
 
 def main():
     # read genome fasta
@@ -66,7 +70,7 @@ def main():
     indeled_genome = orchestrator.generate_fasta(mutated_genome)
     write_fasta(indeled_genome, output_normal_fasta_file)
     indel_bed = orchestrator.get_pandas_dataframe()
-    write_bed(indel_bed, output_normal_bedfile)   ### write out "normalsim" bedpe
+    write_bed(genome_offset, indel_bed, output_normal_bedfile)   ### write out "normalsim" bedpe
 
     # add structural varations
     orchestrator.generate_structural_variations(mutated_genome, number_of_tumorSVs)
@@ -75,7 +79,7 @@ def main():
 
     tumor_bed = orchestrator.get_pandas_dataframe()
     tumor_bed = subtract_beds(tumor_bed, indel_bed)
-    write_bed(tumor_bed, output_tumor_bedfile)  ### write out "tumorsim" bedpe
+    write_bed(genome_offset, tumor_bed, output_tumor_bedfile)  ### write out "tumorsim" bedpe
 
 if __name__ == "__main__":
     main()
