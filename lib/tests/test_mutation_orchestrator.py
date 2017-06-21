@@ -2,6 +2,7 @@ import unittest
 from .. import mutation_orchestrator
 from Bio.Seq import MutableSeq
 from Bio.Alphabet import generic_dna
+import pandas as pd
 
 class Dummy_Mutation_Orchestrator(mutation_orchestrator.Mutation_Orchestrator):
 
@@ -58,6 +59,28 @@ class TestMutationOrchestrator(unittest.TestCase):
         self.genome = {'chr1': MutableSeq("NNNNNNNNNNA", generic_dna)}
         location = self.mo.get_location_on_sequence(self.genome['chr1'], 'uniform')
         self.assertEqual(location, 10)
+
+    def test_bed_correct(self):
+        lists = [['chr2', 6, 6, 'insertion', 'AAA', 2],['chr1', 6, 15, 'inversion', '-', 0]]
+        df = pd.DataFrame(lists)
+        df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
+        lists = [['chr2', 6, 7, 'insertion', 'AAA', 2],['chr1', 6, 15, 'inversion', '-', 0]]
+        expected_df = pd.DataFrame(lists)
+        expected_df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
+        new_bed = self.mo.bed_correct(df)
+        self.assertTrue(expected_df.equals(new_bed))
+
+    def test_pandas_dataframe(self):
+        lists = [['chr2', 6, 6, 'insertion', 'AAA', 2],['chr1', 6, 15, 'inversion', '-', 0]]
+        df = pd.DataFrame(lists)
+        df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
+        lists = [['chr2', 6, 7, 'insertion', 'AAA', 2],['chr1', 6, 15, 'inversion', '-', 0]]
+        expected_df = pd.DataFrame(lists)
+        expected_df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
+        self.mo.tracker.log_data_frame = df
+        new_bed = self.mo.get_pandas_dataframe()
+        self.assertTrue(expected_df.equals(new_bed))
+        self.assertFalse(expected_df.equals(self.mo.tracker.log_data_frame))        
 
     def test_orchestrate_translocation(self):
         return

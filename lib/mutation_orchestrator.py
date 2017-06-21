@@ -129,8 +129,13 @@ class Mutation_Orchestrator:
         return self.tracker.collapse_list(genome)
 
     def get_pandas_dataframe(self):
-        return self.tracker.log_data_frame
+        return self.bed_correct(self.tracker.log_data_frame.copy())
 
+    # We need to store insertions as same start and end. Let's correct that when outputting bed files
+    def bed_correct(self, df):
+        same_vals = df[df['start'] == df['end']]
+        df.ix[same_vals.index, 'end'] +=1
+        return df
 
 class Mutation_Tracker:
 
