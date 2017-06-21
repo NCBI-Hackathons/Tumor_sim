@@ -25,14 +25,33 @@ class Mutation_Orchestrator:
         }
         self.logger = logging.basicConfig(filename='example.log',level=logging.DEBUG)
 
-    def snv_fast(self, genome, number):
+    def snv_fast(self, genome, number, mutation_distribution):
         chroms = self.pick_chromosomes(genome, number)
-        ### assume for normal bases 
-        new_bases = np.random.choice(['A', 'C', 'T', 'G'], number, [0.25, 0.25, 0.25, 0.25])
+        ### assume for normal bases
+        #new_bases = np.random.choice(['A', 'C', 'T', 'G'], number, [0.25, 0.25, 0.25, 0.25])
+        distribution = [sum(mutation_distribution[0:3]),sum(mutation_distribution[3:6]),sum(mutation_distribution[6:9]),sum(mutation_distribution[9:12])]
+        Adistribution = [mutation_distribution[0]/sum(mutation_distribution[0:3]),mutation_distribution[1]/sum(mutation_distribution[0:3]),mutation_distribution[2]/sum(mutation_distribution[0:3])]
+        Cdistribution = [mutation_distribution[3]/sum(mutation_distribution[3:6]),mutation_distribution[1]/sum(mutation_distribution[3:6]),mutation_distribution[2]/sum(mutation_distribution[3:6])]
+        Gdistribution = [mutation_distribution[6]/sum(mutation_distribution[6:9]),mutation_distribution[1]/sum(mutation_distribution[6:9]),mutation_distribution[2]/sum(mutation_distribution[6:9])]
+        Tdistribution = [mutation_distribution[9]/sum(mutation_distribution[9:12]),mutation_distribution[1]/sum(mutation_distribution[9:12]),mutation_distribution[2]/sum(mutation_distribution[9:12])]
         for i in range(number):
-            start = self.get_location_on_sequence(genome[chroms[i]])
-            genome[chroms[i]] = self.creator.create_snv(genome[chroms[i]], start, new_bases[i])
-            logging.info('Added base {} at position {} in chrom {}'.format(new_bases[i], str(start), chroms[i]))
+            start = self.get_location_on_sequencesnp(genome[chroms[i]], distribution)
+            if start[1] == "A":
+                new_base = np.random.choice(['C', 'G', 'T'], number, Adistribution)
+                genome[chroms[i]] = self.creator.create_snv(genome[chroms[i]], start[0], new_base[0])
+                logging.info('Added base {} at position {} in chrom {}'.format(new_bases[i], str(start[0]), chroms[i]))
+            if start[1] == "C":
+                new_base = np.random.choice(['A', 'G', 'T'], number, Cdistribution)
+                genome[chroms[i]] = self.creator.create_snv(genome[chroms[i]], start[0], new_base[0])
+                logging.info('Added base {} at position {} in chrom {}'.format(new_bases[i], str(start[0]), chroms[i]))
+            if start[1] == "G":
+                new_base = np.random.choice(['A', 'C', 'T'], number, Gdistribution)
+                genome[chroms[i]] = self.creator.create_snv(genome[chroms[i]], start[0], new_base[0])
+                logging.info('Added base {} at position {} in chrom {}'.format(new_bases[i], str(start[0]), chroms[i]))
+            if start[1] == "T":
+                new_base = np.random.choice(['A', 'C', 'G'], number, Tdistribution)
+                genome[chroms[i]] = self.creator.create_snv(genome[chroms[i]], start[0], new_base[0])
+                logging.info('Added base {} at position {} in chrom {}'.format(new_bases[i], str(start[0]), chroms[i]))
         return genome
 
     def pick_chromosomes(self, genome, number=1, replace=True):
@@ -40,6 +59,21 @@ class Mutation_Orchestrator:
         probabilities = relative_lengths / float(relative_lengths.sum())
         chroms = np.random.choice(list(genome.keys()), number, replace=replace,p=probabilities.tolist())
         return chroms
+
+    def get_location_on_sequencesnp(self, seq, distribution):
+            # Don't select a location with a N
+        nt = "N"
+        while nt == "N":
+            location = np.random.randint(len(seq))
+            if seq[location] == "A" and np.random.random() < distribution[0]:
+                nt = "A"
+            if seq[location] == "C" and np.random.random() < distribution[1]:
+                nt = "C"
+            if seq[location] == "G" and np.random.random() < distribution[2]:
+                nt = "G"
+            if seq[location] == "T" and np.random.random() < distribution[3]:
+                nt = "T"
+        return [location, nt]
 
     def get_location_on_sequence(self, seq, distribution='uniform'):
         if distribution == 'uniform':
@@ -49,10 +83,9 @@ class Mutation_Orchestrator:
                 if seq[location] != 'N':
                     return location
         else:
-            raise NotImplementedError("Only Uniform is implemented!")
+            raise NotImplementedError('Only Uniform is implemented!')
 
     # Default to being a big deletion, but p=0.6 makes it a small deletion
-    
     def orchestrate_deletion(self, genome, distribution='uniform', p=0.001):
         chrom = self.pick_chromosomes(genome)[0]
         start = self.get_location_on_sequence(genome[chrom])
