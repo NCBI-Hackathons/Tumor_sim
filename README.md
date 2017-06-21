@@ -7,11 +7,9 @@ better understanding the pathways of cancer progression after a mutation event, 
 
 ### Goal
 Generate a simulated tumor genome, based on a user-provided genome file as reference. 
-
-*Dependencies:* found in requirements.txt, please be sure to have them installed on your system. The software package is written in Python and contained in the [lib folder](https://github.com/NCBI-Hackathons/Tumor_sim/tree/master/lib). 
 ***
 ## Installation
-Be sure to have the required dependencies installed first on your system.
+*Dependencies:* found in requirements.txt, please be sure to have them installed on your system. The software package is written in Python and contained in the [lib folder](https://github.com/NCBI-Hackathons/Tumor_sim/tree/master/lib). 
 ```
 >pip install -r requirements.txt
 ```
