@@ -49,13 +49,10 @@ class Mutation_Orchestrator:
                 if seq[location] != 'N':
                     return location
         else:
-            raise NotImplementedError('Only Uniform is implemented!'
-
-
-
-
+            raise NotImplementedError("Only Uniform is implemented!")
 
     # Default to being a big deletion, but p=0.6 makes it a small deletion
+    
     def orchestrate_deletion(self, genome, distribution='uniform', p=0.001):
         chrom = self.pick_chromosomes(genome)[0]
         start = self.get_location_on_sequence(genome[chrom])
