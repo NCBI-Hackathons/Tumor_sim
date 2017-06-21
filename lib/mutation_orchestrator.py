@@ -7,6 +7,7 @@ import logging
 class Mutation_Orchestrator:
     def __init__(self):
         self.tracker = Mutation_Tracker()
+        self.creator = Mutation_Creator()
         self.structural_variations = {
         'deletion': self.orchestrate_deletion,
         'translocation': self.orchestrate_translocation,
@@ -56,7 +57,6 @@ class Mutation_Orchestrator:
         self.tracker.create_deletion(chrom, start, end)
         #genome[chrom] = self.creator.create_deletion(genome[chrom], start, end)
         logging.info('Orchestrated deletion from {} to {} in chrom {}'.format(start, end, chrom))
-        return genome
 
     def orchestrate_translocation(self, genome, distribution='uniform'):
         if len(genome) == 1:
@@ -72,7 +72,6 @@ class Mutation_Orchestrator:
         # genome[chrom_target], start_source, start_target, source_event_length, target_event_length)
         logging.info('Orchestrated translocation at position {} of length {} on chrom {} to position {} of length {} on chrom {}'.format(
             start_source, source_event_length, chrom_source, start_target, target_event_length, chrom_target))
-        return genome
 
     # Models exponential decay, discretely, within a 1-10 range.
     # Expected value of event is 1/p
@@ -92,7 +91,6 @@ class Mutation_Orchestrator:
         self.tracker.create_insertion(chrom, start, new_seq,
              name='duplication (times {})'.format(num_duplications))
         logging.info('Orchestrated duplication at position {} to {} on chrom {}'.format(start, end, chrom))
-        return genome
 
     def orchestrate_inversion(self, genome, distribution='uniform'):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
@@ -101,7 +99,6 @@ class Mutation_Orchestrator:
         #genome[chrom] = self.creator.create_inversion(genome[chrom], start, end)
         self.tracker.create_inversion(chrom, start, end)
         logging.info('Orchestrated inversion at position {} to {} on chrom {}'.format(start, end, chrom))
-        return genome
 
     def orchestrate_insertion(self, genome, distribution='uniform'):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
@@ -114,7 +111,6 @@ class Mutation_Orchestrator:
         self.tracker.create_insertion(chrom, start, new_seq)
         logging.info('Orchestrated insertion at position {} on chrom {} adding bases from position {} to {}'.format(start,
          chrom, new_seq_start, new_seq_end))
-        return genome
 
     def generate_structural_variations(self, genome, number):
         variations = np.random.choice(list(self.structural_variations_probabilities.keys()),
