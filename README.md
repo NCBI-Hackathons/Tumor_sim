@@ -11,11 +11,11 @@ Generate a simulated tumor genome, based on a user-provided genome file as refer
 ## Installation
 *Dependencies:* found in requirements.txt, please be sure to have them installed on your system. The software package is written in Python and contained in the [lib folder](https://github.com/NCBI-Hackathons/Tumor_sim/tree/master/lib). 
 ```
->pip install -r requirements.txt
+> pip install -r requirements.txt
 ```
 
 ## Usage
-The user can provide their reference genome in FASTA format as input file to simulate_endToEnd.py, or use our default example fasta.
+The user can provide their reference genome in FASTA format as input file to `simulate_endToEnd.py`, or use our default example fasta.
 
 ```
 > cd lib
@@ -26,7 +26,7 @@ The user can provide their reference genome in FASTA format as input file to sim
 
 To view the help options, type -h:
 ```
->python simuate_endToEnd.py -h
+> python simuate_endToEnd.py -h
 Usage: simulate_endToEnd.py [-h] [--input_fasta INPUT_FASTA]
                             [--output_tumor_fasta OUTPUT_TUMOR_FASTA]
                             [--output_normal_fasta OUTPUT_NORMAL_FASTA]
