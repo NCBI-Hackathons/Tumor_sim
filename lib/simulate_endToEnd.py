@@ -127,9 +127,9 @@ if __name__ == "__main__":
                         help='file path for the output normal (SNV-added) fasta')
     parser.add_argument('--output_complement_tumor_fasta',
                         default="tests/complement_tumorsim.fasta",
-                        help='file path for the output complement 3'-5' strand tumor (cancer genome) fasta')
+                        help='file path for the output complement 3-5 strand tumor (cancer genome) fasta')
     parser.add_argument('--output_complement_normal_fasta',
                         default="tests/complement_normalsim.fasta",
-                        help='file path for the output complement 3'-5' strand normal (SNV-added) fasta')
+                        help='file path for the output complement 3-5 strand normal (SNV-added) fasta')
     args = vars(parser.parse_args())
     main(args)
