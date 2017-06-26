@@ -11,6 +11,8 @@ number_of_tumorSVs = 10000
 output_normal_bedfile = "tests/normal.bed"
 output_tumor_bedfile = "tests/tumor.bed"
 
+
+
 def write_fasta(genome, output_fasta_file):  
     # write fasta
     output_seqs = []
@@ -58,10 +60,27 @@ def offset_bed(df, genome_offset):
         df.ix[per_chrom.index, 'start'] += genome_offset[chrom]
     return df
 
+
+def take_complementary_bases(mutable_seq):
+    ### A->T, T->A, C->G, G->C
+    complementary_sequence = mutable_seq.translate({ord("A"): "T", ord("T"): "A", ord("C"): "G", ord("G"): "C"})    
+    return complementary_sequence
+
+def create_complementary_genome(genome):
+    ### all reference FASTAs written in 5'-3'
+    ### this function outputs the 3'-5' complement
+    for chrom in genome:
+        genome[chrom] = take_complementary_bases(genome[chrom])
+    return genome
+
+
+
 def main(args):
     input_reference_fasta_file = args['input_fasta']
     output_tumor_fasta_file = args['output_tumor_fasta']
     output_normal_fasta_file = args['output_normal_fasta']
+    output_complement_tumor_fasta_file = args['output_complement_tumor_fasta']
+    output_complement_normal_fasta_file = args['output_complement_normal_fasta']
     # read genome fasta
     (mutated_genome, genome_offset) = read_fasta_normal(input_reference_fasta_file)
 
@@ -70,6 +89,10 @@ def main(args):
     # add germilne SNVs & InDels
     mutated_genome = orchestrator.snv_fast(mutated_genome, number_snvs)
     write_fasta(mutated_genome, output_normal_fasta_file)
+
+    ## output complement 3'-5' strand normal
+    normal_complement = create_complementary_genome(mutated_genome)
+    write_fasta(normal_complement, output_complement_normal_fasta_file)
 
     orchestrator.generate_indels(mutated_genome, number_snvs)
     indeled_genome = orchestrator.generate_fasta(mutated_genome)
@@ -81,6 +104,10 @@ def main(args):
     orchestrator.generate_structural_variations(mutated_genome, number_of_tumorSVs)
     mutated_genome = orchestrator.generate_fasta(mutated_genome)
     write_fasta(mutated_genome, output_tumor_fasta_file)
+
+    ## output complement 3'-5' strand tumor
+    tumor_complement = create_complementary_genome(mutated_genome)
+    write_fasta(tumor_complement, output_complement_tumor_fasta_file)
 
     tumor_bed = orchestrator.get_pandas_dataframe()
     tumor_bed = subtract_beds(tumor_bed, indel_bed)
@@ -98,5 +125,11 @@ if __name__ == "__main__":
     parser.add_argument('--output_normal_fasta',
                         default = "tests/normalsim.fasta",
                         help='file path for the output normal (SNV-added) fasta')
+    parser.add_argument('--output_complement_tumor_fasta',
+                        default="tests/complement_tumorsim.fasta",
+                        help='file path for the output complement 3'-5' strand tumor (cancer genome) fasta')
+    parser.add_argument('--output_complement_normal_fasta',
+                        default="tests/complement_normalsim.fasta",
+                        help='file path for the output complement 3'-5' strand normal (SNV-added) fasta')
     args = vars(parser.parse_args())
     main(args)
