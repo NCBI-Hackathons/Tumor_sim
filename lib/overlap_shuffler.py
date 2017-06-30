@@ -7,9 +7,8 @@ class Overlap_Shuffler:
 	def shuffler(self, dframe):
 		return dframe.reindex(np.random.permutation(dframe.index))
 
-	def combined_unions(self, intervals):
-        ### finds overlapping intervals and takes the union, merges into one union interval
-        sorted_by_lowest_interval = sorted(intervals, key=lambda tup: tup[0])
+	def combined_unions(self, intervals): ### finds overlapping intervals and takes the union, merges into one union interval
+        sorted_by_lowest_interval = sorted(intervals, key=lambda tup: tup[0])   
         merged_intervals = []
         for higher in sorted_by_lowest_interval:
             if not merged_intervals:
@@ -25,8 +24,7 @@ class Overlap_Shuffler:
                     merged_intervals.append(higher)
         return merged_intervals
 
-    def remix_overlaps(dframe):
-        ### create list of tuples
+    def remix_overlaps(dframe): ### create list of tuples
         chrom_list = []   ## append each shuffled dataframe by chromosome
         for name, group in dframe.groupby("chrom"):  ## split dataframe by group
             chrom = pd.DataFrame(group)  ### each chrom has its own dataframe
