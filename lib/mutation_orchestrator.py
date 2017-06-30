@@ -224,8 +224,7 @@ class Mutation_Tracker:
 
 
 
-
-     def collapse_list_with_overlaps(self, genome):
+    def collapse_list_with_overlaps(self, genome):
         self.log_data_frame = pd.DataFrame(self.list)
         self.log_data_frame.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
         self.log_data_frame = self.log_data_frame.sort_values(['chrom', 'start', 'end'], ascending = [False, False, False])
