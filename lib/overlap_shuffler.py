@@ -4,17 +4,16 @@ import pandas as pd
 import random
 
 class Overlap_Shuffler:
-	def __init__(self):
+    def __init__(self):
         self.merged_intervals = []
         self.chrom_list = []       
 
-
-	def shuffler(self, dframe):
-		eturn dframe.reindex(np.random.permutation(dframe.index))
+    def shuffler(self, dframe):
+        return dframe.reindex(np.random.permutation(dframe.index))
 
     def combined_unions(self, intervals):  ### finds overlapping intervals and takes the union, merges into one union interval
-    	sorted_by_lowest_interval = sorted(intervals, key = lambda tup: tup[0])   
-        for higher in sorted_by_lowest_interval
+        sorted_by_lowest_interval = sorted(intervals, key = lambda tup: tup[0])   
+        for higher in sorted_by_lowest_interval:
             if not self.merged_intervals:
                 self.merged_intervals.append(higher)
             else:
