@@ -233,8 +233,18 @@ class Mutation_Tracker:
             previous_starts[chrom] = float('Inf')
 
         self.log_data_frame = remix_overlaps(self.log_data_frame)
-
+        
         mutable_genome = genome
+        ### I think this is right:
+        ### now that we have a shuffled pandas Dataframe,
+        ### loop through the rows and implement arrangements in dictionary
+        for idx, row in self.log_data_frame.iterrows():
+            uid = row.uid
+            chrom = row.chrom
+            mutable_params = self.function_dict[uid]['params']
+            mutable_params[0] = genome[chrom]
+            mutable_genome[chrom] = self.function_dict[uid]['func'](*mutable_params)
+            previous_starts[chrom] = row.start
         return(mutable_genome)
 
 
