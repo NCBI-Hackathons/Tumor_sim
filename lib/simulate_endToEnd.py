@@ -79,6 +79,7 @@ def main(args):
     input_reference_fasta_file = args['input_fasta']
     output_tumor_fasta_file = args['output_tumor_fasta']
     output_normal_fasta_file = args['output_normal_fasta']
+    outpur_overlapping_normal_fasta_file = args['output_overlapping_normal_fasta']
     output_complement_tumor_fasta_file = args['output_complement_tumor_fasta']
     output_complement_normal_fasta_file = args['output_complement_normal_fasta']
     # read genome fasta
@@ -97,6 +98,10 @@ def main(args):
     orchestrator.generate_indels(mutated_genome, number_snvs)
     indeled_genome = orchestrator.generate_fasta(mutated_genome)
     write_fasta(indeled_genome, output_normal_fasta_file)
+
+    overlapping_indeled_genome = orchestrator.generate_overlapping_fasta(mutated_genome)
+    write_fasta(overlapping_indeled_genome, output_normal_fasta_file)
+
     indel_bed = orchestrator.get_pandas_dataframe()
     write_bed(genome_offset, indel_bed, output_normal_bedfile)   ### write out "normalsim" bedpe
 
@@ -125,6 +130,9 @@ if __name__ == "__main__":
     parser.add_argument('--output_normal_fasta',
                         default = "tests/normalsim.fasta",
                         help='file path for the output normal (SNV-added) fasta')
+    parser.add_argument('--output_overlapping_normal_fasta',
+                        default = "tests/normalsim_overlaps.fasta",
+                        help='file path for the output normal (SNV-added) fasta; TEMPORARY')
     parser.add_argument('--output_complement_tumor_fasta',
                         default="tests/complement_tumorsim.fasta",
                         help='file path for the output complement 3-5 strand tumor (cancer genome) fasta')
