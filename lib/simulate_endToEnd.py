@@ -26,8 +26,8 @@ def write_fasta(genome, output_fasta_file):
 
 
 def remove_trailing_N_characters(sequence):
-    start_index = len(sequence) - len(sequence.lstrip("N"))
-    end_index = len(sequence.rstrip("N")) #- len(sequence) - 1
+    start_index = len(str(sequence)) - len(str(sequence).lstrip("N"))
+    end_index = len(str(sequence).rstrip("N")) #- len(sequence) - 1
     sequence = sequence[start_index:end_index]
     return sequence
 
