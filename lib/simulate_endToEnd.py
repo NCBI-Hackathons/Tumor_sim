@@ -63,7 +63,7 @@ def offset_bed(df, genome_offset):
 
 def take_complementary_bases(mutable_seq):
     ### A->T, T->A, C->G, G->C
-    complementary_sequence = mutable_seq.translate({ord("A"): "T", ord("T"): "A", ord("C"): "G", ord("G"): "C"})    
+    complementary_sequence = str(mutable_seq).translate({ord("A"): "T", ord("T"): "A", ord("C"): "G", ord("G"): "C"})    
     return complementary_sequence
 
 def create_complementary_genome(genome):
