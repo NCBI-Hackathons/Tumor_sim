@@ -29,7 +29,8 @@ def remove_trailing_N_characters(sequence):
     start_index = len(str(sequence)) - len(str(sequence).lstrip("N"))
     end_index = len(str(sequence).rstrip("N")) #- len(sequence) - 1
     sequence = sequence[start_index:end_index]
-    return sequence
+    offset = start_index
+    return (sequence, offset)
 
 
 def read_fasta_normal(input_fasta_file):
