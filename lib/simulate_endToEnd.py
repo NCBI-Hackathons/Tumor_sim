@@ -24,14 +24,13 @@ def write_fasta(genome, output_fasta_file):
     with open(output_fasta_file, "w") as output_handle:
         SeqIO.write(output_seqs, output_handle, "fasta")
 
+
 def remove_trailing_N_characters(sequence):
-    original_len_seq = len(sequence)
-    while sequence[0] == 'N':
-        sequence.pop(0)
-    offset = original_len_seq - len(sequence)
-    while sequence[-1] == 'N':
-        sequence.pop(-1)
-    return (sequence, offset)
+    start_index = len(sequence) - len(sequence.lstrip("N"))
+    end_index = len(sequence.rstrip("N")) #- len(sequence) - 1
+    sequence = sequence[start_index:end_index]
+    return sequence
+
 
 def read_fasta_normal(input_fasta_file):
     ### takes some time to load entire 3GB hg38 into memory; possible performance problem
