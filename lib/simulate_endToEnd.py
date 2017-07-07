@@ -61,16 +61,11 @@ def offset_bed(df, genome_offset):
     return df
 
 
-def take_complementary_bases(mutable_seq):
-    ### A->T, T->A, C->G, G->C
-    complementary_sequence = str(mutable_seq).translate({ord("A"): "T", ord("T"): "A", ord("C"): "G", ord("G"): "C"})    
-    return complementary_sequence
-
 def create_complementary_genome(genome):
     ### all reference FASTAs written in 5'-3'
     ### this function outputs the 3'-5' complement
     for chrom in genome:
-        genome[chrom] = take_complementary_bases(genome[chrom])
+        genome[chrom] = genome[chrom].toseq().complement()
     return genome
 
 
