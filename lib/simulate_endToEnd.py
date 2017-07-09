@@ -65,7 +65,7 @@ def create_complementary_genome(genome):
     ### all reference FASTAs written in 5'-3'
     ### this function outputs the 3'-5' complement
     for chrom in genome:
-        genome[chrom] = genome[chrom].toseq().complement()
+        genome[chrom] = genome[chrom].toseq().complement().tomutable()   ##complement() works on Seq, must be MutableSeq for write_fasta()
     return genome
 
 
