@@ -53,7 +53,7 @@ In the future, user-adjusted parameters will also be accounted for, including [C
 A subsampled version of hg38 is also provided in the [data folder](https://github.com/NCBI-Hackathons/Tumor_sim/tree/master/data) of this repository.
 To download the reference FASATA hg38 or hg19, use the following commands:
 
-For reference fasta `hg19.fa` (approximately 3.0 GB):
+For reference fasta `hg38.fa` (approximately 3.0 GB):
 
 ```
 > wget  http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.chromFa.tar.gz
@@ -62,7 +62,7 @@ For reference fasta `hg19.fa` (approximately 3.0 GB):
 > cat chr*.fa > hg38.fa
 > rm chr*.fa
 ```
-For reference fasta `hg38.fa` (approximately 3.1 GB):
+For reference fasta `hg19.fa` (approximately 3.1 GB):
 
 ```
 > wget http://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/chromFa.tar.gz
