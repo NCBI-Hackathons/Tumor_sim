@@ -94,7 +94,8 @@ def main(args):
     normal_complement = create_complementary_genome(mutated_genome)
     write_fasta(normal_complement, output_complement_normal_fasta_file)
 
-    orchestrator.generate_indels(mutated_genome, number_snvs)
+    ## add germline InDels ("small InDels")
+    orchestrator.generate_germline_indels(mutated_genome, number_snvs)
     indeled_genome = orchestrator.generate_fasta(mutated_genome)
     write_fasta(indeled_genome, output_normal_fasta_file)
     indel_bed = orchestrator.get_pandas_dataframe()
