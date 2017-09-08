@@ -8,6 +8,11 @@ class Mutation_Orchestrator:
     def __init__(self):
         self.tracker = Mutation_Tracker()
         self.creator = Mutation_Creator()
+        self.germline_variations = {
+        'germline_deletion': self.orchestrate_germline_deletion,
+        'germline_insertion' : self.orchestrate_germline_insertion
+        }
+
         self.structural_variations = {
         'deletion': self.orchestrate_deletion,
         'translocation': self.orchestrate_translocation,
@@ -51,15 +56,33 @@ class Mutation_Orchestrator:
         else:
             raise NotImplementedError("Only Uniform is implemented!")
 
+    # Models exponential decay, discretely, within a 1-10 range.
+    # Expected value of event is 1/p
+    def get_event_length(self, p=0.6, number = 1):
+        z = np.random.geometric(p, size=number)
+            return z[0]
+
     # Default to being a big deletion, but p=0.6 makes it a small deletion
-    
-    def orchestrate_deletion(self, genome, distribution='uniform', p=0.001):
+
+
+    def orchestrate_germline_deletion(self, genome, distribution='uniform', p=0.001):
         chrom = self.pick_chromosomes(genome)[0]
         start = self.get_location_on_sequence(genome[chrom])
         end = start + self.get_event_length()
+        self.tracker.create_germline_deletion(chrom, start, end)
+        #genome[chrom] = self.creator.create_deletion(genome[chrom], start, end)
+        logging.info('Orchestrated germline deletion from {} to {} in chrom {}'.format(start, end, chrom))
+
+    def orchestrate_deletion(self, genome, distribution='uniform'):
+        chrom = self.pick_chromosomes(genome)[0]
+        start = self.get_location_on_sequence(genome[chrom])
+        prob = np.random.uniform(0.001, 0.0000001, 1)   ## draw prob from uniform, 0.001 to 1e-7
+        end = start + self.get_event_length(p=prob[0])
         self.tracker.create_deletion(chrom, start, end)
         #genome[chrom] = self.creator.create_deletion(genome[chrom], start, end)
         logging.info('Orchestrated deletion from {} to {} in chrom {}'.format(start, end, chrom))
+
+
 
     def orchestrate_translocation(self, genome, distribution='uniform'):
         if len(genome) == 1:
@@ -68,8 +91,9 @@ class Mutation_Orchestrator:
         (chrom_source, chrom_target) = self.pick_chromosomes(genome, number = 2, replace = False)
         start_source = self.get_location_on_sequence(genome[chrom_source])
         start_target = self.get_location_on_sequence(genome[chrom_target])
-        source_event_length = self.get_event_length(p=0.001)
-        target_event_length = self.get_event_length(p=0.001)
+        prob = np.random.uniform(0.001, 0.0000001, 1)   ## draw prob from uniform, 0.001 to 1e-7
+        source_event_length = self.get_event_length(p=prob[0])
+        target_event_length = self.get_event_length(p=prob[0])
         end_source = start_source+source_event_length
         end_target = start_target+target_event_length
         new_seq_source = genome[chrom_target][start_target:end_target]
@@ -79,19 +103,16 @@ class Mutation_Orchestrator:
         logging.info('Orchestrated translocation at position {} of length {} on chrom {} to position {} of length {} on chrom {}'.format(
             start_source, source_event_length, chrom_source, start_target, target_event_length, chrom_target))
 
-    # Models exponential decay, discretely, within a 1-10 range.
-    # Expected value of event is 1/p
-    def get_event_length(self, p=0.6, number = 1):
-        z = np.random.geometric(p, size=number)
-        return z[0]
 
     # Duplication currently only goes one direction (forward)
     # Creates a variable amount of duplications (num_duplications, drawn from geometric dist)
     def orchestrate_duplication(self, genome, distribution='uniform'):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
-        end = start + self.get_event_length(p=0.001)
-        num_duplications = self.get_event_length(p=0.6) # exponential ranging from 1 to 10
+        prob = np.random.uniform(0.001, 0.0000001, 1)   ## draw prob from uniform, 0.001 to 1e-7
+        end = start + self.get_event_length(p=prob[0])
+        duplication_prob = np.random.uniform(0.05, 0.7, 1)  ## with np.random.geometric(p, 1), these values are 14 to 2
+        num_duplications = self.get_event_length(p=duplication_prob[0]) # exponential ranging from 1 to 10
         new_seq = str(genome[chrom][start:end]) * num_duplications
         self.tracker.create_insertion(chrom, start, new_seq,
              name='duplication (times {})'.format(num_duplications))
@@ -99,15 +120,17 @@ class Mutation_Orchestrator:
 
     def orchestrate_inversion(self, genome, distribution='uniform'):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
+        prob = np.random.uniform(0.001, 0.0000001, 1)   ## draw prob from uniform, 0.001 to 1e-7
         start = self.get_location_on_sequence(genome[chrom])
-        end = start + self.get_event_length(p=0.001)
+        end = start + self.get_event_length(p=prob[0])
         self.tracker.create_inversion(chrom, start, end)
         logging.info('Orchestrated inversion at position {} to {} on chrom {}'.format(start, end, chrom))
 
-    def orchestrate_insertion(self, genome, distribution='uniform', p=0.001):
+    def orchestrate_insertion(self, genome, distribution='uniform'):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
-        event_length = self.get_event_length(p)
+        prob = np.random.uniform(0.001, 0.0000001, 1)
+        event_length = self.get_event_length(p=prob[0])
         new_seq_start = self.get_location_on_sequence(genome[chrom])
         new_seq_end = new_seq_start + event_length
         new_seq = genome[chrom][new_seq_start:new_seq_end]
@@ -115,18 +138,32 @@ class Mutation_Orchestrator:
         logging.info('Orchestrated insertion at position {} on chrom {} adding bases from position {} to {}'.format(start,
          chrom, new_seq_start, new_seq_end))
 
+
+    def orchestrate_germline_insertion(self, genome, distribution='uniform', p=0.001):
+        chrom = self.pick_chromosomes(genome, number = 1)[0]
+        start = self.get_location_on_sequence(genome[chrom])
+        event_length = self.get_event_length(p)
+        new_seq_start = self.get_location_on_sequence(genome[chrom])
+        new_seq_end = new_seq_start + event_length
+        new_seq = genome[chrom][new_seq_start:new_seq_end]
+        self.tracker.create_germline_insertion(chrom, start, new_seq)
+        logging.info('Orchestrated insertion at position {} on chrom {} adding bases from position {} to {}'.format(start, chrom, new_seq_start, new_seq_end))
+
+
+
     def generate_structural_variations(self, genome, number):
         variations = np.random.choice(list(self.structural_variations_probabilities.keys()),
                 number, self.structural_variations_probabilities.values())
         for variation in variations:
             self.structural_variations[variation](genome)
 
-    # Create small insertions and small deletions
-    def generate_indels(self, genome, number):
-        variations = np.random.choice(list(['insertion', 'deletion']), number)
+    # Create small insertions and small deletions, germline
+    def generate_germline_indels(self, genome, number):
+        variations = np.random.choice(list(['germline_insertion', 'germline_deletion']), number)
         for variation in variations:
-            self.structural_variations[variation](genome, p=0.6)
-
+            self.germline_variations[variation](genome, p=0.6)
+    
+    
     # Actually collapses the list of changes
     def generate_fasta(self, genome):
         return self.tracker.collapse_list(genome)
@@ -150,9 +187,11 @@ class Mutation_Tracker:
 
         self.mutation_functions = {
         'deletion': self.creator.create_deletion,
+        'germline_deletion': self.creator.create_germline_deletion,
         'translocation': self.creator.create_translocation,
         'inversion' : self.creator.create_inversion,
-        'insertion' : self.creator.create_insertion
+        'insertion' : self.creator.create_insertion,
+        'germline_insertion': self.creator.create_germline_insertion
         }
 
 
@@ -161,18 +200,32 @@ class Mutation_Tracker:
         uid = len(self.list)
         self.list.append([chrom, start, start, name, str(new_seq), uid])
         self.function_dict[uid] = {'func':self.mutation_functions[func], 'params':func_params}
+    
+    def create_germline_insertion(self, chrom, start, end, func='germline_insertion', name='germline_insertion'):
+        uid = len(self.list)
+        func_params = [chrom, start, end]
+        self.list.append([chrom, start, end, name, '-', uid])
+        self.function_dict[uid] = {'func':self.mutation_functions[func], 'params':func_params}
 
     def create_deletion(self, chrom, start, end, func='deletion', name='deletion'):
         uid = len(self.list)
         func_params = [chrom, start, end]
         self.list.append([chrom, start, end, name, '-', uid])
         self.function_dict[uid] = {'func':self.mutation_functions[func], 'params':func_params}
+  
+    def create_germline_deletion(self, chrom, start, end, func='germline_deletion', name='germline_deletion'):
+        uid = len(self.list)
+        func_params = [chrom, start, end]
+        self.list.append([chrom, start, end, name, '-', uid])
+        self.function_dict[uid] = {'func':self.mutation_functions[func], 'params':func_params}
+
 
     def create_inversion(self, chrom, start, end, func='inversion', name='inversion'):
         uid = len(self.list)
         func_params = [chrom, start, end]
         self.list.append([chrom, start, end, name, '-', uid])
         self.function_dict[uid] = {'func':self.mutation_functions[func], 'params':func_params}
+        
 
     def create_translocation(self, chrom_source, chrom_target, start_source, start_target,
                 end_source, end_target, new_seq_source, new_seq_target):
