@@ -42,13 +42,22 @@ class TestMutationOrchestrator(unittest.TestCase):
         s = self.mo.generate_structural_variations(self.genome, number)
         self.assertEqual(None, s)
 
-    def test_generate_germ_indels(self):
+    def test_generate_indels(self):
         self.mo = Dummy_Mutation_Orchestrator()
         number = 8 
         s = self.mo.generate_indels(self.genome, number)
         self.assertEqual(None, s)
         gg = self.mo.generate_fasta(self.genome)
         dataframe = self.mo.get_pandas_dataframe()
+    
+    
+    def test_generate_germline_indels(self):
+        self.mo = Dummy_Mutation_Orchestrator()
+        number = 8
+        s = self.mo.generate_germline_indels(self.genome, number)
+        self.assertEqual(None, s)
+        ##gg = self.mo.generate_fasta(self.genome)
+        ##dataframe = self.mo.get_pandas_dataframe()
 
     def test_get_location_on_sequence(self):
         self.genome = {'chr1': MutableSeq("NANNNNNNNNN", generic_dna)}

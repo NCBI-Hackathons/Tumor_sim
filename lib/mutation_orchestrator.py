@@ -169,10 +169,10 @@ class Mutation_Orchestrator:
 
 
     # Create small insertions and small deletions, germline
-    ## def generate_indels(self, genome, number):
-    ##     variations = np.random.choice(list(['germline_insertion', 'germline_deletion']), number)
-    ##     for variation in variations:
-    ##        self.germline_variations[variation](genome, p=0.6)
+    def generate_germline_indels(self, genome, number):
+        variations = np.random.choice(list(['germline_insertion', 'germline_deletion']), number)
+        for variation in variations:
+            self.germline_variations[variation](genome)
     
     
     # Actually collapses the list of changes
