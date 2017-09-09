@@ -188,11 +188,9 @@ class Mutation_Tracker:
 
         self.mutation_functions = {
         'deletion': self.creator.create_deletion,
-        'germline_deletion': self.creator.create_germline_deletion,
         'translocation': self.creator.create_translocation,
         'inversion' : self.creator.create_inversion,
-        'insertion' : self.creator.create_insertion,
-        'germline_insertion': self.creator.create_germline_insertion
+        'insertion' : self.creator.create_insertion
         }
 
 
