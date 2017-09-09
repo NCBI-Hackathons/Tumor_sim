@@ -56,7 +56,7 @@ class TestMutationOrchestrator(unittest.TestCase):
         number = 8
         s = self.mo.generate_germline_indels(self.genome, number)
         self.assertEqual(None, s)
-        ##gg = self.mo.generate_fasta(self.genome)
+        gg = self.mo.generate_fasta(self.genome)
         ##dataframe = self.mo.get_pandas_dataframe()
 
     def test_get_location_on_sequence(self):
