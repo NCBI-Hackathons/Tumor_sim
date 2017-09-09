@@ -12,7 +12,6 @@ class Mutation_Orchestrator:
         'germline_deletion': self.orchestrate_germline_deletion,
         'germline_insertion' : self.orchestrate_germline_insertion
         }
-
         self.structural_variations = {
         'deletion': self.orchestrate_deletion,
         'translocation': self.orchestrate_translocation,
@@ -20,7 +19,6 @@ class Mutation_Orchestrator:
         'inversion' : self.orchestrate_inversion,
         'insertion' : self.orchestrate_insertion
         }
-
         self.structural_variations_probabilities = {
         'deletion': 0.2,
         'translocation': 0.2,
