@@ -42,7 +42,7 @@ class TestMutationOrchestrator(unittest.TestCase):
         s = self.mo.generate_structural_variations(self.genome, number)
         self.assertEqual(None, s)
 
-    def test_generate_structural_variations(self):
+    def test_generate_germ_indels(self):
         self.mo = Dummy_Mutation_Orchestrator()
         number = 8 
         s = self.mo.generate_germline_indels(self.genome, number)
