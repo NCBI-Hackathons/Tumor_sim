@@ -58,6 +58,7 @@ class Mutation_Orchestrator:
 
     # Models exponential decay, discretely, within a 1-10 range.
     # Expected value of event is 1/p
+
     def get_event_length(self, p=0.6, number = 1):
         z = np.random.geometric(p, size=number)
             return z[0]
