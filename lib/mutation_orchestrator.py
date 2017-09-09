@@ -159,7 +159,7 @@ class Mutation_Orchestrator:
             self.structural_variations[variation](genome)
 
     # Create small insertions and small deletions, germline
-    def generate_germline_indels(self, genome, number):
+    def generate_indels(self, genome, number):
         variations = np.random.choice(list(['germline_insertion', 'germline_deletion']), number)
         for variation in variations:
             self.germline_variations[variation](genome, p=0.6)
