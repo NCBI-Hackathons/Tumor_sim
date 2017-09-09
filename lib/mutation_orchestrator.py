@@ -61,7 +61,7 @@ class Mutation_Orchestrator:
 
     def get_event_length(self, p=0.6, number = 1):
         z = np.random.geometric(p, size=number)
-            return z[0]
+        return z[0]
 
     # Default to being a big deletion, but p=0.6 makes it a small deletion
 
