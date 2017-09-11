@@ -2,7 +2,10 @@ from Bio import SeqIO
 import numpy as np
 import pandas as pd
 from mutation_creator import Mutation_Creator
+from overlap_shuffler import Overlap_Shuffler
 import logging
+
+
 
 class Mutation_Orchestrator:
     def __init__(self):
@@ -131,6 +134,12 @@ class Mutation_Orchestrator:
     def generate_fasta(self, genome):
         return self.tracker.collapse_list(genome)
 
+    ### temporary function
+    def generate_overlapping_fasta(self, genome):
+        return self.tracker.collapse_list_with_overlaps(genome)
+
+
+
     def get_pandas_dataframe(self):
         return self.bed_correct(self.tracker.log_data_frame.copy())
 
@@ -144,6 +153,7 @@ class Mutation_Tracker:
 
     def __init__(self):
         self.creator = Mutation_Creator()
+        self.shuffler = Overlap_Shuffler()
         self.list = []
         self.function_dict = {}
         self.log_data_frame = None
@@ -211,3 +221,30 @@ class Mutation_Tracker:
                 self.log_data_frame = self.log_data_frame.drop(idx, axis=0)
             previous_starts[chrom] = row.start
         return(mutable_genome)
+
+
+
+    def collapse_list_with_overlaps(self, genome):
+        self.log_data_frame = pd.DataFrame(self.list)
+        self.log_data_frame.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
+        self.log_data_frame = self.log_data_frame.sort_values(['chrom', 'start', 'end'], ascending = [False, False, False])
+        previous_starts = {}
+        for chrom in genome:
+            previous_starts[chrom] = float('Inf')
+
+        self.log_data_frame = remix_overlaps(self.log_data_frame)
+        
+        mutable_genome = genome
+        ### I think this is right:
+        ### now that we have a shuffled pandas Dataframe,
+        ### loop through the rows and implement arrangements in dictionary
+        for idx, row in self.log_data_frame.iterrows():
+            uid = row.uid
+            chrom = row.chrom
+            mutable_params = self.function_dict[uid]['params']
+            mutable_params[0] = genome[chrom]
+            mutable_genome[chrom] = self.function_dict[uid]['func'](*mutable_params)
+            previous_starts[chrom] = row.start
+        return(mutable_genome)
+
+

@@ -24,14 +24,14 @@ def write_fasta(genome, output_fasta_file):
     with open(output_fasta_file, "w") as output_handle:
         SeqIO.write(output_seqs, output_handle, "fasta")
 
+
 def remove_trailing_N_characters(sequence):
-    original_len_seq = len(sequence)
-    while sequence[0] == 'N':
-        sequence.pop(0)
-    offset = original_len_seq - len(sequence)
-    while sequence[-1] == 'N':
-        sequence.pop(-1)
+    start_index = len(str(sequence)) - len(str(sequence).lstrip("N"))
+    end_index = len(str(sequence).rstrip("N")) #- len(sequence) - 1
+    sequence = sequence[start_index:end_index]
+    offset = start_index
     return (sequence, offset)
+
 
 def read_fasta_normal(input_fasta_file):
     ### takes some time to load entire 3GB hg38 into memory; possible performance problem
@@ -61,16 +61,11 @@ def offset_bed(df, genome_offset):
     return df
 
 
-def take_complementary_bases(mutable_seq):
-    ### A->T, T->A, C->G, G->C
-    complementary_sequence = mutable_seq.translate({ord("A"): "T", ord("T"): "A", ord("C"): "G", ord("G"): "C"})    
-    return complementary_sequence
-
 def create_complementary_genome(genome):
     ### all reference FASTAs written in 5'-3'
     ### this function outputs the 3'-5' complement
     for chrom in genome:
-        genome[chrom] = take_complementary_bases(genome[chrom])
+        genome[chrom] = genome[chrom].toseq().complement()
     return genome
 
 
@@ -79,6 +74,7 @@ def main(args):
     input_reference_fasta_file = args['input_fasta']
     output_tumor_fasta_file = args['output_tumor_fasta']
     output_normal_fasta_file = args['output_normal_fasta']
+    outpur_overlapping_normal_fasta_file = args['output_overlapping_normal_fasta']
     output_complement_tumor_fasta_file = args['output_complement_tumor_fasta']
     output_complement_normal_fasta_file = args['output_complement_normal_fasta']
     # read genome fasta
@@ -97,6 +93,10 @@ def main(args):
     orchestrator.generate_indels(mutated_genome, number_snvs)
     indeled_genome = orchestrator.generate_fasta(mutated_genome)
     write_fasta(indeled_genome, output_normal_fasta_file)
+
+    overlapping_indeled_genome = orchestrator.generate_overlapping_fasta(mutated_genome)
+    write_fasta(overlapping_indeled_genome, output_normal_fasta_file)
+
     indel_bed = orchestrator.get_pandas_dataframe()
     write_bed(genome_offset, indel_bed, output_normal_bedfile)   ### write out "normalsim" bedpe
 
@@ -125,6 +125,9 @@ if __name__ == "__main__":
     parser.add_argument('--output_normal_fasta',
                         default = "tests/normalsim.fasta",
                         help='file path for the output normal (SNV-added) fasta')
+    parser.add_argument('--output_overlapping_normal_fasta',
+                        default = "tests/normalsim_overlaps.fasta",
+                        help='file path for the output normal (SNV-added) fasta; TEMPORARY')
     parser.add_argument('--output_complement_tumor_fasta',
                         default="tests/complement_tumorsim.fasta",
                         help='file path for the output complement 3-5 strand tumor (cancer genome) fasta')
