@@ -35,7 +35,6 @@ def remove_trailing_N_characters(sequence):
 @profile
 def read_fasta_normal(input_fasta_file):
     ### takes some time to load entire 3GB hg38 into memory; possible performance problem
-    print(input_fasta_file)
     genome = {}
     genome_offset = {}
     for seq_record in SeqIO.parse(input_fasta_file, "fasta"):
