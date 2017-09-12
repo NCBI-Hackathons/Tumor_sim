@@ -10,8 +10,11 @@ class Dummy_Mutation_Orchestrator(mutation_orchestrator.Mutation_Orchestrator):
     def get_event_length(self, p=1):
         return 2
 
-    def pick_chromosomes(self, genome, number = 1):
-        return ['chr2']
+    def pick_chromosomes(self, genome, number = 1, replace=True):
+        if replace:
+            return ['chr2']
+        else:
+            return(['chr2', 'chr1'])
 
     def get_location_on_sequence(self, seq):
         return 2
@@ -19,7 +22,7 @@ class Dummy_Mutation_Orchestrator(mutation_orchestrator.Mutation_Orchestrator):
 class TestMutationOrchestrator(unittest.TestCase):
 
     def setUp(self):
-        self.genome = {'chr1': MutableSeq("ACTCGTCGTC", generic_dna),
+        self.genome = {'chr1': MutableSeq("TCGTCGTC", generic_dna),
         'chr2': MutableSeq("ACTCGTCGTC", generic_dna)}
         self.mo = mutation_orchestrator.Mutation_Orchestrator()
 
@@ -83,13 +86,13 @@ class TestMutationOrchestrator(unittest.TestCase):
         expected_bed = [['chr2', 2, 4, 'deletion', '-',  0]]
         df = pd.DataFrame(expected_bed)
         df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
-        print bed
         self.assertTrue(bed.equals(df))
-        import pdb; pdb.set_trace()
         # Assert that the insertion increased the length of the genome at chr2 by 4
         self.assertEqual(len(original_genome['chr2']) - 2 , len(returned_genome['chr2']))
 
 
+    # Most complex test: validates that a single translocation creates the equivalent
+    # of 2 insertions and 2 deletions
     def test_orchestrate_translocation(self):
         self.mo = Dummy_Mutation_Orchestrator()
         self.mo.orchestrate_translocation(self.genome)
@@ -97,14 +100,27 @@ class TestMutationOrchestrator(unittest.TestCase):
         (returned_genome, bed) = self.mo.tracker.collapse_list(self.genome)
         expected_name = 'deletion'
         realized_name = bed['name'][0]
-        expected_bed = [['chr2', 2, 4, 'deletion', '-',  0]]
+        start = 2
+        end = 4
+        expected_bed = [['chr2', start, end, 'translocation(del)', '-',  0],
+        ['chr1', start, end, 'translocation(del)', '-',  1],
+        ['chr2', start, start, 'translocation(chr1:2-4)', 'GT',  2],
+        ['chr1', start, start, 'translocation(chr2:2-4)', 'TC',  3]
+        ]
         df = pd.DataFrame(expected_bed)
         df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
-        print bed
+        df = df.sort_values('uid')
+        bed = bed.sort_values('uid')
+        df.index = bed.index
         self.assertTrue(bed.equals(df))
-        import pdb; pdb.set_trace()
+    
         # Assert that the insertion increased the length of the genome at chr2 by 4
-        self.assertEqual(len(original_genome['chr2']) - 2 , len(returned_genome['chr2']))
+        self.assertEqual(len(original_genome['chr2']) , len(returned_genome['chr2']))
+        expected_chr1 = original_genome['chr1'][:start] + original_genome['chr2'][start:end] + original_genome['chr1'][end:]
+        self.assertEqual(expected_chr1, returned_genome['chr1'])
+        expected_chr2 = original_genome['chr2'][:start] + original_genome['chr1'][start:end] + original_genome['chr2'][end:]
+        self.assertEqual(expected_chr2, returned_genome['chr2'])
+
 
     def test_orchestrate_insertion(self):
         self.mo = Dummy_Mutation_Orchestrator()
@@ -118,7 +134,6 @@ class TestMutationOrchestrator(unittest.TestCase):
         df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
         print bed
         self.assertTrue(bed.equals(df))
-        import pdb; pdb.set_trace()
         # Assert that the insertion increased the length of the genome at chr2 by 4
         self.assertEqual(len(original_genome['chr2']) + 2 , len(returned_genome['chr2']))
 
@@ -132,10 +147,8 @@ class TestMutationOrchestrator(unittest.TestCase):
         expected_bed = [['chr2', 2, 4, 'inversion', '-',  0]]
         df = pd.DataFrame(expected_bed)
         df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
-        print bed
         self.assertTrue(bed.equals(df))
-        import pdb; pdb.set_trace()
-        # Assert that the insertion increased the length of the genome at chr2 by 4
+        # Assert that the inversion kept the length of the genome at chr2 the same
         self.assertEqual(len(original_genome['chr2']), len(returned_genome['chr2']))
 
 

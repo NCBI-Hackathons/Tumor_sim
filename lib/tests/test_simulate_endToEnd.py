@@ -1,8 +1,10 @@
 import unittest
 from .. import simulate_endToEnd
 from Bio.Seq import MutableSeq
+from Bio import SeqIO
 from Bio.Alphabet import generic_dna
 import pandas as pd
+import numpy as np
 
 class TestSimulateNormal(unittest.TestCase):
 
@@ -60,6 +62,41 @@ class TestSimulateNormal(unittest.TestCase):
         expected_df = pd.DataFrame(lists)
         expected_df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
         self.assertTrue(expected_df.equals(corrected_bed))
+
+    # End to End test: needs to be run from top-level dir
+    def test_main(self):
+        np.random.seed(seed=999)
+        args = {}
+        args['input_fasta'] = "data/tiny_test.fa"
+        args['number_snvs'] = 1
+        args['number_indels'] = 1
+        args['number_of_tumorSVs'] = 1
+        args['output_normal_bedfile'] = "test_output/normal.bed"
+        args['output_tumor_bedfile'] = "test_output/tumor.bed"
+        args['output_tumor_fasta'] = "test_output/tumorsim.fasta"
+        args['output_normal_fasta'] = "test_output/normalsim.fasta"
+        simulate_endToEnd.main(args)
+
+        # First, test that the normal genome has changed from
+        # ATG -> ACG -> ACCG
+        normal = SeqIO.parse(args['output_normal_fasta'], "fasta")
+        genome = {}
+        for seq_record in normal:
+            genome[seq_record.id] = seq_record
+        self.assertEqual(len(genome), 1)
+        self.assertEqual(str(genome['chr1'].seq), 'ACCG')
+
+        # Then, test that the tumor genome has changed from
+        # ACCG -> AGCC
+        tumor = SeqIO.parse(args['output_tumor_fasta'], "fasta")
+        genome = {}
+        for seq_record in tumor:
+            genome[seq_record.id] = seq_record
+        self.assertEqual(len(genome), 1)
+        self.assertEqual(str(genome['chr1'].seq), 'AGCC')
+        
+
+
 
 
 

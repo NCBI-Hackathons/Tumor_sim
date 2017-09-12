@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from mutation_creator import Mutation_Creator
 import logging
-#from memory_profiler import profile
 
 class Mutation_Orchestrator:
     def __init__(self):
@@ -39,7 +38,7 @@ class Mutation_Orchestrator:
     def pick_chromosomes(self, genome, number=1, replace=True):
         relative_lengths = np.array([len(genome[x]) for x in genome])
         probabilities = relative_lengths / float(relative_lengths.sum())
-        chroms = np.random.choice(list(genome.keys()), number, replace=replace,p=probabilities.tolist())
+        chroms = np.random.choice(list(genome.keys()), number, replace=replace ,p=probabilities.tolist())
         return chroms
 
     def get_location_on_sequence(self, seq, distribution='uniform'):
@@ -208,7 +207,6 @@ class Mutation_Tracker:
         #         # Drop row from DataFrame
                 to_drop.append(uid)
             previous_starts[chrom] = log_data_frame.loc[uid, 'start']
-        # import pdb; pdb.set_trace()
         log_data_frame.drop(to_drop, axis=0, inplace=True)
         # Reset the tracker's list to empty, since it has been collapsed into the log_data_frame
         self.list = []
