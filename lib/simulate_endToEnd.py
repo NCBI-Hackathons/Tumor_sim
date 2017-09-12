@@ -66,7 +66,6 @@ def main(args):
     (mutated_genome, genome_offset) = read_fasta_normal(args['input_fasta'])
 
     orchestrator = Mutation_Orchestrator()
-    
     # add germilne SNVs & InDels
     mutated_genome = orchestrator.snv_fast(mutated_genome, args['number_snvs'])
     orchestrator.generate_indels(mutated_genome, args['number_indels'])
@@ -78,6 +77,7 @@ def main(args):
     ## output complement 3'-5' strand normal
     normal_complement = create_complementary_genome(mutated_genome)
     write_fasta(normal_complement, args['output_complement_normal_fasta'])
+    del normal_complement
 
     # add structural varations
     orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])
