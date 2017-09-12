@@ -6,19 +6,16 @@ There is no "ground truth" for detecting structural variations in cancer genomic
 better understanding the pathways of cancer progression after a mutation event, as found in cell division, aneuploidy, and other relative phenomena.
 
 ### Goal
-Generate a simulated tumor genome, based on a simulated normal genome BAM file created from a user-provided genome file as reference. 
-
-*Dependencies:* found in requirements.txt, please be sure to have them installed on your system. The software package is written in Python and contained in the [lib folder](https://github.com/NCBI-Hackathons/Tumor_sim/tree/master/lib). 
+Generate a simulated tumor genome, based on a user-provided genome file as reference. 
 ***
 ## Installation
-Be sure to have the required dependencies installed first on your system.
+*Dependencies:* found in requirements.txt, please be sure to have them installed on your system. The software package is written in Python and contained in the [lib folder](https://github.com/NCBI-Hackathons/Tumor_sim/tree/master/lib). 
 ```
->pip install -r requirements.txt
+> pip install -r requirements.txt
 ```
 
 ## Usage
-1. To run the simulator, the user must first provide their reference genome in FASTA format as input file to simulate_normal.py.
-2. Use the output BAM file from simulate_normal.py as the input file for simulate_tumor.py.
+The user can provide their reference genome in FASTA format as input file to `simulate_endToEnd.py`, or use our default example fasta.
 
 ```
 > cd lib
@@ -27,30 +24,51 @@ Be sure to have the required dependencies installed first on your system.
 > python simulate_endToEnd.py [-usage] <path/to/input_file>
 ```
 
+To view the help options, type -h:
+```
+> python simuate_endToEnd.py -h
+Usage: simulate_endToEnd.py [-h] [--input_fasta INPUT_FASTA]
+                            [--output_tumor_fasta OUTPUT_TUMOR_FASTA]
+                            [--output_normal_fasta OUTPUT_NORMAL_FASTA]
+
+Simulate cancer genomic structural variations
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --input_fasta INPUT_FASTA
+                        file path for the input (default genome) fasta
+  --output_tumor_fasta OUTPUT_TUMOR_FASTA
+                        file path for the output tumor (cancer genome) fasta
+  --output_normal_fasta OUTPUT_NORMAL_FASTA
+                        file path for the output normal (SNV-added) fasta
+```
+
 ### How it works
-simulate_normal.py calls upon mutation_orchestra.py to generate the random mutations for the normal unique genome case.
+simulate_endToEnd.py calls upon mutation_orchestra.py to generate the random mutations for the normal unique genome case.
 mutation_orchestra.py uses the lower level mutation_creator.py for the simpler mutations and logs the distinction of indels, translocations, duplications and inversions.
-###### simulate_tumor.py
+
 In the future, user-adjusted parameters will also be accounted for, including [COSMIC signatures](http://cancer.sanger.ac.uk/cosmic/signatures).
 
 ## Test
 A subsampled version of hg38 is also provided in the [data folder](https://github.com/NCBI-Hackathons/Tumor_sim/tree/master/data) of this repository.
-To download hg38: 
-```
-wget  http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz
-```
+To download the reference FASATA hg38 or hg19, use the following commands:
 
-To download hg19, use the following commands:
-```
-wget http://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/chromFa.tar.gz
-tar -xzf chromFa.tar.gz
-cat chr*.fa > hg19.fa
-gzip hg19.fa
-```
+For reference fasta `hg38.fa` (approximately 3.0 GB):
 
-### Resource and references
-* http://cancer.sanger.ac.uk/cosmic/signatures
-*
-*
+```
+> wget  http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.chromFa.tar.gz
+> tar -xzf hg38.chromFa.tar.gz
+> cd chroms
+> cat chr*.fa > hg38.fa
+> rm chr*.fa
+```
+For reference fasta `hg19.fa` (approximately 3.1 GB):
+
+```
+> wget http://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/chromFa.tar.gz
+> tar -xzf chromFa.tar.gz
+> cat chr*.fa > hg19.fa
+> rm chr*.fa
+```
 
 [![Travis](https://api.travis-ci.org/NCBI-Hackathons/Tumor_sim.svg?branch=master)](https://travis-ci.org/NCBI-Hackathons/Tumor_sim)

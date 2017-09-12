@@ -4,7 +4,7 @@ import copy
 import pandas as pd
 import re
 import argparse
-from memory_profiler import profile
+import copy
 
 def write_fasta(genome, output_fasta_file):  
     # write fasta
@@ -53,7 +53,14 @@ def offset_bed(df, genome_offset):
         df.ix[per_chrom.index, 'start'] += genome_offset[chrom]
     return df
 
-@profile
+def create_complementary_genome(genome):
+    ### all reference FASTAs written in 5'-3'
+    ### this function outputs the 3'-5' complement
+    new_genome = copy.deepcopy(genome)
+    for chrom in new_genome:
+        new_genome[chrom].complement()
+    return new_genome 
+
 def main(args):
      # read genome fasta
     (mutated_genome, genome_offset) = read_fasta_normal(args['input_fasta'])
@@ -68,11 +75,19 @@ def main(args):
     write_fasta(mutated_genome, args['output_normal_fasta'])
     write_bed(genome_offset, snv_and_indel_bed, args['output_normal_bedfile'])  
 
+    ## output complement 3'-5' strand normal
+    normal_complement = create_complementary_genome(mutated_genome)
+    write_fasta(normal_complement, args['output_complement_normal_fasta'])
+
     # add structural varations
     orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])
     (mutated_genome, tumor_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
     write_fasta(mutated_genome, args['output_tumor_fasta'])
     write_bed(genome_offset, tumor_bed, args['output_tumor_bedfile'])  ### write out "tumorsim" bedpe
+
+    ## output complement 3'-5' strand tumor
+    tumor_complement = create_complementary_genome(mutated_genome)
+    write_fasta(tumor_complement, args['output_complement_tumor_fasta'])
 
 
 if __name__ == "__main__":
@@ -86,6 +101,12 @@ if __name__ == "__main__":
     parser.add_argument('--output_normal_fasta',
                         default = "outputs/normalsim.fasta",
                         help='file path for the output normal (SNV-added) fasta')
+    parser.add_argument('--output_complement_tumor_fasta',
+                        default="outputs/complement_tumorsim.fasta",
+                        help='file path for the output complement 3-5 strand tumor (cancer genome) fasta')
+    parser.add_argument('--output_complement_normal_fasta',
+                        default="outputs/complement_normalsim.fasta",
+                        help='file path for the output complement 3-5 strand normal (SNV-added) fasta')
     parser.add_argument('--number_snvs',
                         default = 3000,
                         help="number of single nucleotide variants to add to the normal genome")

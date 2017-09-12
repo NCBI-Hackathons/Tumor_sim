@@ -75,25 +75,40 @@ class TestSimulateNormal(unittest.TestCase):
         args['output_tumor_bedfile'] = "test_output/tumor.bed"
         args['output_tumor_fasta'] = "test_output/tumorsim.fasta"
         args['output_normal_fasta'] = "test_output/normalsim.fasta"
+        args['output_complement_normal_fasta'] = "test_output/complement_normal.fasta"
+        args['output_complement_tumor_fasta']="test_output/complement_tumorsim.fasta"
         simulate_endToEnd.main(args)
 
         # First, test that the normal genome has changed from
         # ATG -> ACG -> ACCG
-        normal = SeqIO.parse(args['output_normal_fasta'], "fasta")
-        genome = {}
-        for seq_record in normal:
-            genome[seq_record.id] = seq_record
+        genome = self.get_genome_from_fasta_file(args['output_normal_fasta'])
         self.assertEqual(len(genome), 1)
         self.assertEqual(str(genome['chr1'].seq), 'ACCG')
 
         # Then, test that the tumor genome has changed from
         # ACCG -> AGCC
-        tumor = SeqIO.parse(args['output_tumor_fasta'], "fasta")
-        genome = {}
-        for seq_record in tumor:
-            genome[seq_record.id] = seq_record
+        genome = self.get_genome_from_fasta_file(args['output_tumor_fasta'])
         self.assertEqual(len(genome), 1)
         self.assertEqual(str(genome['chr1'].seq), 'AGCC')
+
+        # Assert that the normal's complement is its complement
+        genome = self.get_genome_from_fasta_file(args['output_complement_normal_fasta'])
+        self.assertEqual(len(genome), 1)
+        self.assertEqual(str(genome['chr1'].seq), 'TGGC')
+
+        # Assert that the tumor's complement is its complement
+        genome = self.get_genome_from_fasta_file(args['output_complement_tumor_fasta'])
+        self.assertEqual(len(genome), 1)
+        self.assertEqual(str(genome['chr1'].seq), 'TCGG')
+
+
+    def get_genome_from_fasta_file(self, filename):
+        seqs = SeqIO.parse(filename, "fasta")
+        genome = {}
+        for seq_record in seqs:
+            genome[seq_record.id] = seq_record
+        return genome
+
         
 
 
