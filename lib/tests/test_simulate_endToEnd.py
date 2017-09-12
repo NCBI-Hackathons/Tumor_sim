@@ -5,6 +5,7 @@ from Bio import SeqIO
 from Bio.Alphabet import generic_dna
 import pandas as pd
 import numpy as np
+import mock
 
 class TestSimulateNormal(unittest.TestCase):
 
@@ -65,42 +66,64 @@ class TestSimulateNormal(unittest.TestCase):
 
     # End to End test: needs to be run from top-level dir
     def test_main(self):
-        np.random.seed(seed=999)
-        args = {}
-        args['input_fasta'] = "data/tiny_test.fa"
-        args['number_snvs'] = 1
-        args['number_indels'] = 1
-        args['number_of_tumorSVs'] = 1
-        args['output_normal_bedfile'] = "test_output/normal.bed"
-        args['output_tumor_bedfile'] = "test_output/tumor.bed"
-        args['output_tumor_fasta'] = "test_output/tumorsim.fasta"
-        args['output_normal_fasta'] = "test_output/normalsim.fasta"
-        args['output_complement_normal_fasta'] = "test_output/complement_normal.fasta"
-        args['output_complement_tumor_fasta']="test_output/complement_tumorsim.fasta"
-        simulate_endToEnd.main(args)
 
-        # First, test that the normal genome has changed from
-        # ATG -> ACG -> ACCG
-        genome = self.get_genome_from_fasta_file(args['output_normal_fasta'])
-        self.assertEqual(len(genome), 1)
-        self.assertEqual(str(genome['chr1'].seq), 'ACCG')
+        def choice_fake(*args, **kwargs):
+            if ['chr1'] in args:
+                return ['chr1']
+            if ['A', 'C', 'T', 'G'] in args:
+                return ['C']
+            if ['insertion', 'deletion'] in args:
+                return ['insertion']
+            if 'inversion' in  args[0]:
+                return ['inversion']
+            import pdb; pdb.set_trace()
 
-        # Then, test that the tumor genome has changed from
-        # ACCG -> AGCC
-        genome = self.get_genome_from_fasta_file(args['output_tumor_fasta'])
-        self.assertEqual(len(genome), 1)
-        self.assertEqual(str(genome['chr1'].seq), 'AGCC')
+        def randint_fake(*args, **kwargs):
+            return 1
 
-        # Assert that the normal's complement is its complement
-        genome = self.get_genome_from_fasta_file(args['output_complement_normal_fasta'])
-        self.assertEqual(len(genome), 1)
-        self.assertEqual(str(genome['chr1'].seq), 'TGGC')
+        def geometric_fake(*args, **kwargs):
+            return [2]
 
-        # Assert that the tumor's complement is its complement
-        genome = self.get_genome_from_fasta_file(args['output_complement_tumor_fasta'])
-        self.assertEqual(len(genome), 1)
-        self.assertEqual(str(genome['chr1'].seq), 'TCGG')
-
+        with mock.patch('numpy.random.choice', choice_fake):
+            with mock.patch('numpy.random.randint', randint_fake):
+                with mock.patch('numpy.random.geometric', geometric_fake):
+                
+                    np.random.seed(seed=999)
+                    args = {}
+                    args['input_fasta'] = "data/tiny_test.fa"
+                    args['number_snvs'] = 1
+                    args['number_indels'] = 1
+                    args['number_of_tumorSVs'] = 1
+                    args['output_normal_bedfile'] = "test_output/normal.bed"
+                    args['output_tumor_bedfile'] = "test_output/tumor.bed"
+                    args['output_tumor_fasta'] = "test_output/tumorsim.fasta"
+                    args['output_normal_fasta'] = "test_output/normalsim.fasta"
+                    args['output_complement_normal_fasta'] = "test_output/complement_normal.fasta"
+                    args['output_complement_tumor_fasta']="test_output/complement_tumorsim.fasta"
+                    simulate_endToEnd.main(args)
+        
+                    # First, test that the normal genome has changed from
+                    # ATG -> ACG -> ACCG
+                    genome = self.get_genome_from_fasta_file(args['output_normal_fasta'])
+                    self.assertEqual(len(genome), 1)
+                    self.assertEqual(str(genome['chr1'].seq), 'ACGCG')
+        
+                    # Then, test that the tumor genome has changed from
+                    # ACCG -> AGCC
+                    genome = self.get_genome_from_fasta_file(args['output_tumor_fasta'])
+                    self.assertEqual(len(genome), 1)
+                    self.assertEqual(str(genome['chr1'].seq), 'AGCCG')
+        
+                    # Assert that the normal's complement is its complement
+                    genome = self.get_genome_from_fasta_file(args['output_complement_normal_fasta'])
+                    self.assertEqual(len(genome), 1)
+                    self.assertEqual(str(genome['chr1'].seq), 'TGCGC')
+        
+                    # Assert that the tumor's complement is its complement
+                    genome = self.get_genome_from_fasta_file(args['output_complement_tumor_fasta'])
+                    self.assertEqual(len(genome), 1)
+                    self.assertEqual(str(genome['chr1'].seq), 'TCGGC')
+    
 
     def get_genome_from_fasta_file(self, filename):
         seqs = SeqIO.parse(filename, "fasta")
