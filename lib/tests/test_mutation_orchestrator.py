@@ -3,6 +3,7 @@ from .. import mutation_orchestrator
 from Bio.Seq import MutableSeq
 from Bio.Alphabet import generic_dna
 import pandas as pd
+import copy
 
 class Dummy_Mutation_Orchestrator(mutation_orchestrator.Mutation_Orchestrator):
 
@@ -25,13 +26,16 @@ class TestMutationOrchestrator(unittest.TestCase):
     def test_duplication(self):
         self.mo = Dummy_Mutation_Orchestrator()
         self.mo.orchestrate_duplication(self.genome)
-        self.mo.tracker.collapse_list(self.genome)
+        original_genome = copy.deepcopy(self.genome)
+        (returned_genome, bed) = self.mo.tracker.collapse_list(self.genome)
         expected_name = 'duplication (times 2)'
-        realized_name = self.mo.tracker.log_data_frame['name'][0]
+        realized_name = bed['name'][0]
         self.assertEqual(expected_name, realized_name)
         expected_alt = 'TCTC'
-        realized_alt = self.mo.tracker.log_data_frame['alt'][0]
+        realized_alt = bed['alt'][0]
         self.assertEqual(expected_alt, realized_alt)
+        # Assert that the insertion increased the length of the genome at chr2 by 4
+        self.assertEqual(len(original_genome['chr2']) + 4, len(returned_genome['chr2']))
 
     def test_pick_chromosome_always_pick_non_empty_chrom(self):
         self.genome['chr2'] = MutableSeq("", generic_dna)
@@ -47,8 +51,7 @@ class TestMutationOrchestrator(unittest.TestCase):
         number = 8 
         s = self.mo.generate_indels(self.genome, number)
         self.assertEqual(None, s)
-        gg = self.mo.generate_fasta(self.genome)
-        dataframe = self.mo.get_pandas_dataframe()
+        (gg, bed) = self.mo.generate_fasta_and_bed(self.genome)
 
     def test_get_location_on_sequence(self):
         self.genome = {'chr1': MutableSeq("NANNNNNNNNN", generic_dna)}
@@ -70,20 +73,69 @@ class TestMutationOrchestrator(unittest.TestCase):
         new_bed = self.mo.bed_correct(df)
         self.assertTrue(expected_df.equals(new_bed))
 
-    def test_pandas_dataframe(self):
-        lists = [['chr2', 6, 6, 'insertion', 'AAA', 2],['chr1', 6, 15, 'inversion', '-', 0]]
-        df = pd.DataFrame(lists)
+    def test_orchestrate_deletion(self):
+        self.mo = Dummy_Mutation_Orchestrator()
+        self.mo.orchestrate_deletion(self.genome)
+        original_genome = copy.deepcopy(self.genome)
+        (returned_genome, bed) = self.mo.tracker.collapse_list(self.genome)
+        expected_name = 'deletion'
+        realized_name = bed['name'][0]
+        expected_bed = [['chr2', 2, 4, 'deletion', '-',  0]]
+        df = pd.DataFrame(expected_bed)
         df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
-        lists = [['chr2', 6, 7, 'insertion', 'AAA', 2],['chr1', 6, 15, 'inversion', '-', 0]]
-        expected_df = pd.DataFrame(lists)
-        expected_df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
-        self.mo.tracker.log_data_frame = df
-        new_bed = self.mo.get_pandas_dataframe()
-        self.assertTrue(expected_df.equals(new_bed))
-        self.assertFalse(expected_df.equals(self.mo.tracker.log_data_frame))        
+        print bed
+        self.assertTrue(bed.equals(df))
+        import pdb; pdb.set_trace()
+        # Assert that the insertion increased the length of the genome at chr2 by 4
+        self.assertEqual(len(original_genome['chr2']) - 2 , len(returned_genome['chr2']))
+
 
     def test_orchestrate_translocation(self):
-        return
+        self.mo = Dummy_Mutation_Orchestrator()
+        self.mo.orchestrate_translocation(self.genome)
+        original_genome = copy.deepcopy(self.genome)
+        (returned_genome, bed) = self.mo.tracker.collapse_list(self.genome)
+        expected_name = 'deletion'
+        realized_name = bed['name'][0]
+        expected_bed = [['chr2', 2, 4, 'deletion', '-',  0]]
+        df = pd.DataFrame(expected_bed)
+        df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
+        print bed
+        self.assertTrue(bed.equals(df))
+        import pdb; pdb.set_trace()
+        # Assert that the insertion increased the length of the genome at chr2 by 4
+        self.assertEqual(len(original_genome['chr2']) - 2 , len(returned_genome['chr2']))
 
-    def test_pick_chromosomes(self):
-        return
+    def test_orchestrate_insertion(self):
+        self.mo = Dummy_Mutation_Orchestrator()
+        self.mo.orchestrate_insertion(self.genome)
+        original_genome = copy.deepcopy(self.genome)
+        (returned_genome, bed) = self.mo.tracker.collapse_list(self.genome)
+        expected_name = 'deletion'
+        realized_name = bed['name'][0]
+        expected_bed = [['chr2', 2, 2, 'insertion', 'TC',  0]]
+        df = pd.DataFrame(expected_bed)
+        df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
+        print bed
+        self.assertTrue(bed.equals(df))
+        import pdb; pdb.set_trace()
+        # Assert that the insertion increased the length of the genome at chr2 by 4
+        self.assertEqual(len(original_genome['chr2']) + 2 , len(returned_genome['chr2']))
+
+    def test_orchestrate_inversion(self):
+        self.mo = Dummy_Mutation_Orchestrator()
+        self.mo.orchestrate_inversion(self.genome)
+        original_genome = copy.deepcopy(self.genome)
+        (returned_genome, bed) = self.mo.tracker.collapse_list(self.genome)
+        expected_name = 'deletion'
+        realized_name = bed['name'][0]
+        expected_bed = [['chr2', 2, 4, 'inversion', '-',  0]]
+        df = pd.DataFrame(expected_bed)
+        df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
+        print bed
+        self.assertTrue(bed.equals(df))
+        import pdb; pdb.set_trace()
+        # Assert that the insertion increased the length of the genome at chr2 by 4
+        self.assertEqual(len(original_genome['chr2']), len(returned_genome['chr2']))
+
+

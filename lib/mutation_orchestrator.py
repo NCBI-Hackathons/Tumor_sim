@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from mutation_creator import Mutation_Creator
 import logging
-from memory_profiler import profile
+#from memory_profiler import profile
 
 class Mutation_Orchestrator:
     def __init__(self):
@@ -116,14 +116,12 @@ class Mutation_Orchestrator:
         logging.info('Orchestrated insertion at position {} on chrom {} adding bases from position {} to {}'.format(start,
          chrom, new_seq_start, new_seq_end))
 
-    @profile   
     def generate_structural_variations(self, genome, number):
         variations = np.random.choice(list(self.structural_variations_probabilities.keys()),
                 number, self.structural_variations_probabilities.values())
         for variation in variations:
             self.structural_variations[variation](genome)
 
-    @profile
     # Create small insertions and small deletions
     def generate_indels(self, genome, number):
         variations = np.random.choice(list(['insertion', 'deletion']), number)
@@ -188,7 +186,6 @@ class Mutation_Tracker:
         self.create_insertion(chrom_target, start_target, new_seq_target, name=name_insertion_target)
 
 
-    @profile
     def collapse_list(self, genome):
         log_data_frame = pd.DataFrame(self.list)
         log_data_frame.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
