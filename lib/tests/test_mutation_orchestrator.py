@@ -132,7 +132,6 @@ class TestMutationOrchestrator(unittest.TestCase):
         expected_bed = [['chr2', 2, 2, 'insertion', 'TC',  0]]
         df = pd.DataFrame(expected_bed)
         df.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
-        print bed
         self.assertTrue(bed.equals(df))
         # Assert that the insertion increased the length of the genome at chr2 by 4
         self.assertEqual(len(original_genome['chr2']) + 2 , len(returned_genome['chr2']))
