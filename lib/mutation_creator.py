@@ -3,19 +3,24 @@ from random import randint
 
 class Mutation_Creator:
     def create_deletion(self, mutable_seq, start, end):
-        return mutable_seq[:start] + mutable_seq[end:]
+        new_seq = mutable_seq[:start] + mutable_seq[end:]
+        del mutable_seq
+        return new_seq
 
     def create_snv(self, mutable_seq, start, new_base):
         mutable_seq[start] = new_base
         return mutable_seq
 
     def create_insertion(self, mutable_seq, start, new_seq):
-        return mutable_seq[:start] + new_seq +  mutable_seq[start:]
+        new_seq = mutable_seq[:start] + new_seq +  mutable_seq[start:]
+        del mutable_seq
+        return new_seq
 
     def create_inversion(self, mutable_seq, start, end):
         inv_seq = mutable_seq[start:end]
         inv_seq.reverse()
         mutable_seq[start:end] = inv_seq
+        del inv_seq
         return mutable_seq
 
     def create_translocation(self, seq1, seq2, start1, start2, length1, length2):

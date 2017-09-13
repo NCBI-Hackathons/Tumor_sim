@@ -38,7 +38,7 @@ class Mutation_Orchestrator:
     def pick_chromosomes(self, genome, number=1, replace=True):
         relative_lengths = np.array([len(genome[x]) for x in genome])
         probabilities = relative_lengths / float(relative_lengths.sum())
-        chroms = np.random.choice(list(genome.keys()), number, replace=replace,p=probabilities.tolist())
+        chroms = np.random.choice(list(genome.keys()), number, replace=replace ,p=probabilities.tolist())
         return chroms
 
     def get_location_on_sequence(self, seq, distribution='uniform'):
@@ -127,12 +127,10 @@ class Mutation_Orchestrator:
         for variation in variations:
             self.structural_variations[variation](genome, p=0.6)
 
-    # Actually collapses the list of changes
-    def generate_fasta(self, genome):
-        return self.tracker.collapse_list(genome)
-
-    def get_pandas_dataframe(self):
-        return self.bed_correct(self.tracker.log_data_frame.copy())
+    # Actually collapses the list of changes    
+    def generate_fasta_and_bed(self, genome):
+        (genome, log_data_frame) =  self.tracker.collapse_list(genome)
+        return (genome, self.bed_correct(log_data_frame))
 
     # We need to store insertions as same start and end. Let's correct that when outputting bed files
     def bed_correct(self, df):
@@ -146,7 +144,6 @@ class Mutation_Tracker:
         self.creator = Mutation_Creator()
         self.list = []
         self.function_dict = {}
-        self.log_data_frame = None
 
         self.mutation_functions = {
         'deletion': self.creator.create_deletion,
@@ -189,25 +186,28 @@ class Mutation_Tracker:
 
 
     def collapse_list(self, genome):
-        self.log_data_frame = pd.DataFrame(self.list)
-        self.log_data_frame.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
-        self.log_data_frame = self.log_data_frame.sort_values(['chrom', 'start', 'end'], ascending = [False, False, False])
+        log_data_frame = pd.DataFrame(self.list)
+        log_data_frame.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
+        log_data_frame = log_data_frame.sort_values(['chrom', 'start', 'end'], ascending = [False, False, False])
         previous_starts = {}
         for chrom in genome:
             previous_starts[chrom] = float('Inf')
 
         mutable_genome = genome
-        for idx, row in self.log_data_frame.iterrows():
-            # Logic for avoiding overlaps
-            uid = row.uid
-            chrom = row.chrom
-            if row.end <= previous_starts[chrom]:
-                # Have to modify the parameters because the mutable seq needs to get passed in
-                mutable_params = self.function_dict[uid]['params']
-                mutable_params[0] = genome[chrom]
-                mutable_genome[chrom] = self.function_dict[uid]['func'](*mutable_params)
+        to_drop = []
+        for uid in log_data_frame.index:
+        # Logic for avoiding overlaps
+            chrom = log_data_frame.loc[uid, 'chrom']
+            if log_data_frame.loc[uid, 'end'] <= previous_starts[chrom]:
+        #         # Have to modify the parameters because the mutable seq needs to get passed in
+                func = self.function_dict.pop(uid)
+                func['params'][0] = genome[chrom]
+                mutable_genome[chrom] = func['func'](*func['params'])
             else:
-                # Drop row from DataFrame
-                self.log_data_frame = self.log_data_frame.drop(idx, axis=0)
-            previous_starts[chrom] = row.start
-        return(mutable_genome)
+        #         # Drop row from DataFrame
+                to_drop.append(uid)
+            previous_starts[chrom] = log_data_frame.loc[uid, 'start']
+        log_data_frame.drop(to_drop, axis=0, inplace=True)
+        # Reset the tracker's list to empty, since it has been collapsed into the log_data_frame
+        self.list = []
+        return(mutable_genome, log_data_frame)

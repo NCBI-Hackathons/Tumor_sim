@@ -17,21 +17,21 @@ class TestMutationTracker(unittest.TestCase):
 
     def test_deletion_adds_to_function_dict(self):
         self.mc.create_deletion("chr1", start=5, end=10)
-        new_genome = self.mc.collapse_list(self.genome)
+        (new_genome, bed) = self.mc.collapse_list(self.genome)
         expected_chr1 = MutableSeq("ACTCG", generic_dna)
         self.assertEqual(new_genome["chr1"], expected_chr1)
 
     def test_two_deletion_adds_to_function_dict(self):
         self.mc.create_deletion("chr1", start=5, end=6)
         self.mc.create_deletion("chr1", start=8, end=10)
-        new_genome = self.mc.collapse_list(self.genome)
+        (new_genome, bed) = self.mc.collapse_list(self.genome)
         expected_chr1 = MutableSeq("ACTCGCG", generic_dna)
         self.assertEqual(new_genome["chr1"], expected_chr1)
 
     def test_two_deletion_added_to_two_chromosomes(self):
         self.mc.create_deletion("chr1", start=5, end=9)
         self.mc.create_deletion("chr2", start=1, end=10)
-        new_genome = self.mc.collapse_list(self.genome)
+        (new_genome, bed) = self.mc.collapse_list(self.genome)
         expected_chr1 = MutableSeq("ACTCGC", generic_dna)
         expected_chr2 = MutableSeq("A", generic_dna)
         self.assertEqual(new_genome["chr1"], expected_chr1)
@@ -39,23 +39,23 @@ class TestMutationTracker(unittest.TestCase):
 
     def test_inversion(self):
         self.mc.create_inversion("chr1", start=1, end=3)
-        new_genome = self.mc.collapse_list(self.genome)
+        (new_genome, bed) = self.mc.collapse_list(self.genome)
         self.assertEqual(new_genome["chr1"], MutableSeq("ATCCGTCGTC", generic_dna))
 
     def test_inversion_outside_range(self):
         self.mc.create_inversion("chr1", start=6, end=15)
-        new_genome = self.mc.collapse_list(self.genome)
+        (new_genome, bed) = self.mc.collapse_list(self.genome)
         self.assertEqual(new_genome["chr1"], MutableSeq("ACTCGTCTGC", generic_dna))
 
     def test_insertion(self):
         self.mc.create_insertion("chr1", start=4, new_seq="GGAA")
-        new_genome = self.mc.collapse_list(self.genome)
+        (new_genome, bed) = self.mc.collapse_list(self.genome)
         self.assertEqual(new_genome["chr1"], MutableSeq("ACTCGGAAGTCGTC", generic_dna))
 
     def test_insertion_then_deletion(self):
         self.mc.create_insertion("chr1", start=4, new_seq="CCC")
         self.mc.create_deletion("chr1", start=4, end = 10)
-        new_genome = self.mc.collapse_list(self.genome)
+        (new_genome, bed) = self.mc.collapse_list(self.genome)
         self.assertEqual(new_genome["chr1"], MutableSeq("ACTCCCC", generic_dna))
 
     def test_translocation(self):
@@ -65,7 +65,7 @@ class TestMutationTracker(unittest.TestCase):
         self.mc.create_translocation("chr1", "chr2", 5, 0, 7, 4, "GGTG", "AT")
         expected_genome = {"chr1": MutableSeq("AAAAAGGTG", generic_dna),
                            "chr2": MutableSeq("ATGGGC", generic_dna)}
-        new_genome = self.mc.collapse_list(genome)
+        (new_genome, bed) = self.mc.collapse_list(genome)
         self.assertEqual(new_genome, expected_genome)
 
     # Start: ACTCGTCGTC
@@ -82,7 +82,7 @@ class TestMutationTracker(unittest.TestCase):
         self.mc.create_inversion("chr1", start=6, end=15)
         self.mc.create_deletion("chr1", start=4, end=7)
         self.mc.create_insertion("chr2", start=6, new_seq = "AAA")
-        new_genome = self.mc.collapse_list(self.genome)
+        (new_genome, bed) = self.mc.collapse_list(self.genome)
         expected_genome = {"chr1": MutableSeq("ACTCGTCTGC", generic_dna),
                            "chr2": MutableSeq("ACTCGTAAACGTC", generic_dna)}
         self.assertEqual(new_genome, expected_genome)
@@ -91,16 +91,16 @@ class TestMutationTracker(unittest.TestCase):
         expected_df.columns = ["chrom", "start", "end", "name", "alt", "uid"]
         expected_df.index = [2,0]
 
-        self.assertTrue(expected_df.equals(self.mc.log_data_frame))
+        self.assertTrue(expected_df.equals(bed))
 
     def test_duplication(self):
         self.mc.create_insertion("chr2", start=6, new_seq = "AAA", name = "duplication")
-        new_genome = self.mc.collapse_list(self.genome)
+        (new_genome, bed) = self.mc.collapse_list(self.genome)
         self.assertEqual(new_genome["chr2"], MutableSeq("ACTCGTAAACGTC", generic_dna))
         lists = [["chr2", 6, 6, "duplication", "AAA", 0]]
         expected_df = pd.DataFrame(lists)
         expected_df.columns = ["chrom", "start", "end", "name", "alt", "uid"]
-        self.assertTrue(expected_df.equals(self.mc.log_data_frame))
+        self.assertTrue(expected_df.equals(bed))
 
 
     def tst_deletion_outside_range(self):
