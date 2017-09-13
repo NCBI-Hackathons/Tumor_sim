@@ -47,8 +47,6 @@ optional arguments:
 simulate_endToEnd.py calls upon mutation_orchestra.py to generate the random mutations for the normal unique genome case.
 mutation_orchestra.py uses the lower level mutation_creator.py for the simpler mutations and logs the distinction of indels, translocations, duplications and inversions.
 
-In the future, user-adjusted parameters will also be accounted for, including [COSMIC signatures](http://cancer.sanger.ac.uk/cosmic/signatures).
-
 ## Test
 
 To run unit tests, run `nosetests` from the top-lelel directory of the project. If you encounter errors, such as test_main failing because it cannot find the data in the data folder, it's most likely because you are not running tests from the top-level directory.
