@@ -88,7 +88,6 @@ class TestSimulateNormal(unittest.TestCase):
             with mock.patch('numpy.random.randint', randint_fake):
                 with mock.patch('numpy.random.geometric', geometric_fake):
                 
-                    np.random.seed(seed=999)
                     args = {}
                     args['input_fasta'] = "data/tiny_test.fa"
                     args['number_snvs'] = 1
@@ -103,13 +102,13 @@ class TestSimulateNormal(unittest.TestCase):
                     simulate_endToEnd.main(args)
         
                     # First, test that the normal genome has changed from
-                    # ATG -> ACG -> ACCG
+                    # ATG -> ACG -> ACGCG
                     genome = self.get_genome_from_fasta_file(args['output_normal_fasta'])
                     self.assertEqual(len(genome), 1)
                     self.assertEqual(str(genome['chr1'].seq), 'ACGCG')
         
                     # Then, test that the tumor genome has changed from
-                    # ACCG -> AGCC
+                    # ACGCG -> AGCCG
                     genome = self.get_genome_from_fasta_file(args['output_tumor_fasta'])
                     self.assertEqual(len(genome), 1)
                     self.assertEqual(str(genome['chr1'].seq), 'AGCCG')
