@@ -78,7 +78,7 @@ class Mutation_Orchestrator:
 
     # Models exponential decay, discretely, within a 1-10 range.
     # Expected value of event is 1/p
-    def get_event_length(self, p=0.6, number = 1):
+    def get_event_length(self, p=0.6):
         z = np.random.geometric(p)
         return z[0]
 
@@ -92,7 +92,7 @@ class Mutation_Orchestrator:
         new_seq = str(genome[chrom][start:end]) * num_duplications
         self.tracker.create_insertion(chrom, start, new_seq,
              name='duplication (times {})'.format(num_duplications))
-        logging.info('Orchestrated duplication at position {} to {} on chrom {}'.format(start, end, chrom))
+        logging.info('Orchestrated duplication at po`tion {} to {} on chrom {}'.format(start, end, chrom))
 
     def orchestrate_inversion(self, genome, distribution='uniform'):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
