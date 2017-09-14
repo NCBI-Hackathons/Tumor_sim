@@ -46,13 +46,11 @@ class Mutation_Orchestrator:
             raise NotImplementedError("Only Uniform is implemented!")
 
     # Default to being a big deletion, but p=0.6 makes it a small deletion
-    
     def orchestrate_deletion(self, genome, distribution='uniform', p=0.001):
         chrom = self.pick_chromosomes(genome)[0]
         start = self.get_location_on_sequence(genome[chrom])
-        end = start + self.get_event_length()
+        end = self.get_end_of_event(start, genome[chrom], p)
         self.tracker.create_deletion(chrom, start, end)
-        #genome[chrom] = self.creator.create_deletion(genome[chrom], start, end)
         logging.info('Orchestrated deletion from {} to {} in chrom {}'.format(start, end, chrom))
 
     def orchestrate_translocation(self, genome, distribution='uniform'):
@@ -76,7 +74,7 @@ class Mutation_Orchestrator:
         length = self.get_event_length(p)
         return np.min([start_pos + length, len(seq)])
 
-    # Models exponential decay, discretely, within a 1-10 range.
+    # Models exponential decay, discretely
     # Expected value of event is 1/p
     def get_event_length(self, p=0.6):
         z = np.random.geometric(p)
@@ -87,7 +85,7 @@ class Mutation_Orchestrator:
     def orchestrate_duplication(self, genome, distribution='uniform'):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
-        end = start + self.get_event_length(p=0.001)
+        end = self.get_end_of_event(start, genome[chrom], p=0.001)
         num_duplications = self.get_event_length(p=0.6) # exponential ranging from 1 to 10
         new_seq = str(genome[chrom][start:end]) * num_duplications
         self.tracker.create_insertion(chrom, start, new_seq,
@@ -97,16 +95,15 @@ class Mutation_Orchestrator:
     def orchestrate_inversion(self, genome, distribution='uniform'):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
-        end = start + self.get_event_length(p=0.001)
+        end = self.get_end_of_event(start, genome[chrom], p=0.001)
         self.tracker.create_inversion(chrom, start, end)
         logging.info('Orchestrated inversion at position {} to {} on chrom {}'.format(start, end, chrom))
 
     def orchestrate_insertion(self, genome, distribution='uniform', p=0.001):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
-        event_length = self.get_event_length(p)
         new_seq_start = self.get_location_on_sequence(genome[chrom])
-        new_seq_end = new_seq_start + event_length
+        new_seq_end = self.get_end_of_event(new_seq_start, genome[chrom], p)
         new_seq = genome[chrom][new_seq_start:new_seq_end]
         self.tracker.create_insertion(chrom, start, new_seq)
         logging.info('Orchestrated insertion at position {} on chrom {} adding bases from position {} to {}'.format(start,
