@@ -74,7 +74,7 @@ class TestSimulateNormal(unittest.TestCase):
         def choice_fake(*args, **kwargs):
             if ['chr1'] in args:
                 return ['chr1']
-            if ['A', 'C', 'T', 'G'] in args:
+            if 'C' in args[0]:
                 return ['C']
             if ['insertion', 'deletion'] in args:
                 return ['insertion']
