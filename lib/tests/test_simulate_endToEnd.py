@@ -6,6 +6,7 @@ from Bio.Alphabet import generic_dna
 import pandas as pd
 import numpy as np
 import mock
+import os
 
 class TestSimulateNormal(unittest.TestCase):
 
@@ -66,6 +67,9 @@ class TestSimulateNormal(unittest.TestCase):
 
     # End to End test: needs to be run from top-level dir
     def test_main(self):
+        output_directory = "test_output"
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
 
         def choice_fake(*args, **kwargs):
             if ['chr1'] in args:
