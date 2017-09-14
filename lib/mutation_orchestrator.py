@@ -62,21 +62,24 @@ class Mutation_Orchestrator:
         (chrom_source, chrom_target) = self.pick_chromosomes(genome, number = 2, replace = False)
         start_source = self.get_location_on_sequence(genome[chrom_source])
         start_target = self.get_location_on_sequence(genome[chrom_target])
-        source_event_length = self.get_event_length(p=0.001)
-        target_event_length = self.get_event_length(p=0.001)
-        end_source = start_source+source_event_length
-        end_target = start_target+target_event_length
+        end_source = self.get_end_of_event(start_source, genome[chrom_source], p=0.001)
+        end_target = self.get_end_of_event(start_target, genome[chrom_target], p=0.001)
         new_seq_source = genome[chrom_target][start_target:end_target]
         new_seq_target = genome[chrom_source][start_source:end_source]
         self.tracker.create_translocation(chrom_source, chrom_target, start_source,
                         start_target, end_source, end_target, new_seq_source, new_seq_target)
-        logging.info('Orchestrated translocation at position {} of length {} on chrom {} to position {} of length {} on chrom {}'.format(
-            start_source, source_event_length, chrom_source, start_target, target_event_length, chrom_target))
+        logging.info('Orchestrated translocation at position {} to position {} on chrom {} at position {} to position {} on chrom {}'.format(
+            start_source, end_source, chrom_source, start_target, end_target, chrom_target))
+
+    # Guarantees the end of the event isn't outside the sequence
+    def get_end_of_event(self, start_pos, seq, p):
+        length = self.get_event_length(p)
+        return np.min([start_pos + length, len(seq)])
 
     # Models exponential decay, discretely, within a 1-10 range.
     # Expected value of event is 1/p
     def get_event_length(self, p=0.6, number = 1):
-        z = np.random.geometric(p, size=number)
+        z = np.random.geometric(p)
         return z[0]
 
     # Duplication currently only goes one direction (forward)
