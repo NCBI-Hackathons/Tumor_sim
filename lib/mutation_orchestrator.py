@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from mutation_creator import Mutation_Creator
 import logging
+from probabilities_config import structural_variations_probabilities, snv_probabilities
 
 class Mutation_Orchestrator:
     def __init__(self):
@@ -16,19 +17,12 @@ class Mutation_Orchestrator:
         'insertion' : self.orchestrate_insertion
         }
 
-        self.structural_variations_probabilities = {
-        'deletion': 0.2,
-        'translocation': 0.2,
-        'duplication' : 0.2,
-        'inversion' : 0.2,
-        'insertion' : 0.2
-        }
         self.logger = logging.basicConfig(filename='example.log',level=logging.DEBUG)
 
     def snv_fast(self, genome, number):
         chroms = self.pick_chromosomes(genome, number)
         ### assume for normal bases 
-        new_bases = np.random.choice(['A', 'C', 'T', 'G'], number, [0.25, 0.25, 0.25, 0.25])
+        new_bases = np.random.choice(snv_probabilities.keys(), number, snv_probabilities.values())
         for i in range(number):
             start = self.get_location_on_sequence(genome[chroms[i]])
             genome[chroms[i]] = self.creator.create_snv(genome[chroms[i]], start, new_bases[i])
@@ -116,8 +110,8 @@ class Mutation_Orchestrator:
          chrom, new_seq_start, new_seq_end))
 
     def generate_structural_variations(self, genome, number):
-        variations = np.random.choice(list(self.structural_variations_probabilities.keys()),
-                number, self.structural_variations_probabilities.values())
+        variations = np.random.choice(list(structural_variations_probabilities.keys()),
+                number, structural_variations_probabilities.values())
         for variation in variations:
             self.structural_variations[variation](genome)
 
