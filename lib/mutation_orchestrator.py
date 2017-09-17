@@ -22,7 +22,7 @@ class Mutation_Orchestrator:
     def snv_fast(self, genome, number):
         chroms = self.pick_chromosomes(genome, number)
         ### assume for normal bases 
-        new_bases = np.random.choice(snv_probabilities.keys(), number, snv_probabilities.values())
+        new_bases = np.random.choice(list(snv_probabilities.keys()), number, snv_probabilities.values())
         for i in range(number):
             start = self.get_location_on_sequence(genome[chroms[i]])
             genome[chroms[i]] = self.creator.create_snv(genome[chroms[i]], start, new_bases[i])
