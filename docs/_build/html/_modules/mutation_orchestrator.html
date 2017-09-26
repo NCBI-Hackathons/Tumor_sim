@@ -1,0 +1,234 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>mutation_orchestrator &#8212; TumorSim  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for mutation_orchestrator</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">Bio</span> <span class="k">import</span> <span class="n">SeqIO</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">mutation_creator</span> <span class="k">import</span> <span class="n">Mutation_Creator</span>
+<span class="kn">from</span> <span class="nn">mutation_tracker</span> <span class="k">import</span> <span class="n">Mutation_Tracker</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">probabilities_config</span> <span class="k">import</span> <span class="n">structural_variations_probabilities</span><span class="p">,</span> <span class="n">snv_probabilities</span>
+
+<div class="viewcode-block" id="Mutation_Orchestrator"><a class="viewcode-back" href="../index.html#mutation_orchestrator.Mutation_Orchestrator">[docs]</a><span class="k">class</span> <span class="nc">Mutation_Orchestrator</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Mutation_Orchestrator is a class that operates on a genome to make a mutation.</span>
+<span class="sd">        It chooses the type, length, and start of the mutation probabilistically, using </span>
+<span class="sd">        the probabilities defined in probabilities_config. It stores a record of the mutations</span>
+<span class="sd">        in the Mutation_Tracker class, and modifies the genome string using Mutation_Creator&quot;&quot;&quot;</span> 
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracker</span> <span class="o">=</span> <span class="n">Mutation_Tracker</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">creator</span> <span class="o">=</span> <span class="n">Mutation_Creator</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structural_variations</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;deletion&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">orchestrate_deletion</span><span class="p">,</span>
+        <span class="s1">&#39;translocation&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">orchestrate_translocation</span><span class="p">,</span>
+        <span class="s1">&#39;duplication&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">orchestrate_duplication</span><span class="p">,</span>
+        <span class="s1">&#39;inversion&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">orchestrate_inversion</span><span class="p">,</span>
+        <span class="s1">&#39;insertion&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">orchestrate_insertion</span>
+        <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;example.log&#39;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">snv_fast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
+        <span class="n">chroms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pick_chromosomes</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">number</span><span class="p">)</span>
+        <span class="c1">### assume for normal bases </span>
+        <span class="n">new_bases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">snv_probabilities</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">number</span><span class="p">,</span> <span class="n">snv_probabilities</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_location_on_sequence</span><span class="p">(</span><span class="n">genome</span><span class="p">[</span><span class="n">chroms</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+            <span class="n">genome</span><span class="p">[</span><span class="n">chroms</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">creator</span><span class="o">.</span><span class="n">create_snv</span><span class="p">(</span><span class="n">genome</span><span class="p">[</span><span class="n">chroms</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span> <span class="n">start</span><span class="p">,</span> <span class="n">new_bases</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Added base </span><span class="si">{}</span><span class="s1"> at position </span><span class="si">{}</span><span class="s1"> in chrom </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">new_bases</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="n">chroms</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">genome</span>
+
+    <span class="k">def</span> <span class="nf">pick_chromosomes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">relative_lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">genome</span><span class="p">[</span><span class="n">x</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">genome</span><span class="p">])</span>
+        <span class="n">probabilities</span> <span class="o">=</span> <span class="n">relative_lengths</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">relative_lengths</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+        <span class="n">chroms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">genome</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">number</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="n">replace</span> <span class="p">,</span><span class="n">p</span><span class="o">=</span><span class="n">probabilities</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">chroms</span>
+
+    <span class="k">def</span> <span class="nf">get_location_on_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="s1">&#39;uniform&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">distribution</span> <span class="o">==</span> <span class="s1">&#39;uniform&#39;</span><span class="p">:</span>
+            <span class="c1"># Don&#39;t select a location with a N</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">location</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">seq</span><span class="p">[</span><span class="n">location</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;N&#39;</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">location</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Only Uniform is implemented!&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Default to being a big deletion, but p=0.6 makes it a small deletion</span>
+    
+    <span class="k">def</span> <span class="nf">orchestrate_deletion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="s1">&#39;uniform&#39;</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.001</span><span class="p">):</span>
+        <span class="n">chrom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pick_chromosomes</span><span class="p">(</span><span class="n">genome</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_location_on_sequence</span><span class="p">(</span><span class="n">genome</span><span class="p">[</span><span class="n">chrom</span><span class="p">])</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_event_length</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracker</span><span class="o">.</span><span class="n">create_deletion</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="c1">#genome[chrom] = self.creator.create_deletion(genome[chrom], start, end)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Orchestrated deletion from </span><span class="si">{}</span><span class="s1"> to </span><span class="si">{}</span><span class="s1"> in chrom </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">chrom</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">orchestrate_translocation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="s1">&#39;uniform&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">genome</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No translocations allowed: genome too small&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="p">(</span><span class="n">chrom_source</span><span class="p">,</span> <span class="n">chrom_target</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pick_chromosomes</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">replace</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">start_source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_location_on_sequence</span><span class="p">(</span><span class="n">genome</span><span class="p">[</span><span class="n">chrom_source</span><span class="p">])</span>
+        <span class="n">start_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_location_on_sequence</span><span class="p">(</span><span class="n">genome</span><span class="p">[</span><span class="n">chrom_target</span><span class="p">])</span>
+        <span class="n">source_event_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_event_length</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+        <span class="n">target_event_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_event_length</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+        <span class="n">end_source</span> <span class="o">=</span> <span class="n">start_source</span><span class="o">+</span><span class="n">source_event_length</span>
+        <span class="n">end_target</span> <span class="o">=</span> <span class="n">start_target</span><span class="o">+</span><span class="n">target_event_length</span>
+        <span class="n">new_seq_source</span> <span class="o">=</span> <span class="n">genome</span><span class="p">[</span><span class="n">chrom_target</span><span class="p">][</span><span class="n">start_target</span><span class="p">:</span><span class="n">end_target</span><span class="p">]</span>
+        <span class="n">new_seq_target</span> <span class="o">=</span> <span class="n">genome</span><span class="p">[</span><span class="n">chrom_source</span><span class="p">][</span><span class="n">start_source</span><span class="p">:</span><span class="n">end_source</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracker</span><span class="o">.</span><span class="n">create_translocation</span><span class="p">(</span><span class="n">chrom_source</span><span class="p">,</span> <span class="n">chrom_target</span><span class="p">,</span> <span class="n">start_source</span><span class="p">,</span>
+                        <span class="n">start_target</span><span class="p">,</span> <span class="n">end_source</span><span class="p">,</span> <span class="n">end_target</span><span class="p">,</span> <span class="n">new_seq_source</span><span class="p">,</span> <span class="n">new_seq_target</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Orchestrated translocation at position </span><span class="si">{}</span><span class="s1"> of length </span><span class="si">{}</span><span class="s1"> on chrom </span><span class="si">{}</span><span class="s1"> to position </span><span class="si">{}</span><span class="s1"> of length </span><span class="si">{}</span><span class="s1"> on chrom </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">start_source</span><span class="p">,</span> <span class="n">source_event_length</span><span class="p">,</span> <span class="n">chrom_source</span><span class="p">,</span> <span class="n">start_target</span><span class="p">,</span> <span class="n">target_event_length</span><span class="p">,</span> <span class="n">chrom_target</span><span class="p">))</span>
+
+    <span class="c1"># Models exponential decay, discretely, within a 1-10 range.</span>
+    <span class="c1"># Expected value of event is 1/p</span>
+    <span class="k">def</span> <span class="nf">get_event_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">geometric</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">number</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Duplication currently only goes one direction (forward)</span>
+    <span class="c1"># Creates a variable amount of duplications (num_duplications, drawn from geometric dist)</span>
+    <span class="k">def</span> <span class="nf">orchestrate_duplication</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="s1">&#39;uniform&#39;</span><span class="p">):</span>
+        <span class="n">chrom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pick_chromosomes</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_location_on_sequence</span><span class="p">(</span><span class="n">genome</span><span class="p">[</span><span class="n">chrom</span><span class="p">])</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_event_length</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+        <span class="n">num_duplications</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_event_length</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span> <span class="c1"># exponential ranging from 1 to 10</span>
+        <span class="n">new_seq</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">genome</span><span class="p">[</span><span class="n">chrom</span><span class="p">][</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">])</span> <span class="o">*</span> <span class="n">num_duplications</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracker</span><span class="o">.</span><span class="n">create_insertion</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">new_seq</span><span class="p">,</span>
+             <span class="n">name</span><span class="o">=</span><span class="s1">&#39;duplication (times </span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num_duplications</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Orchestrated duplication at position </span><span class="si">{}</span><span class="s1"> to </span><span class="si">{}</span><span class="s1"> on chrom </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">chrom</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">orchestrate_inversion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="s1">&#39;uniform&#39;</span><span class="p">):</span>
+        <span class="n">chrom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pick_chromosomes</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_location_on_sequence</span><span class="p">(</span><span class="n">genome</span><span class="p">[</span><span class="n">chrom</span><span class="p">])</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_event_length</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracker</span><span class="o">.</span><span class="n">create_inversion</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Orchestrated inversion at position </span><span class="si">{}</span><span class="s1"> to </span><span class="si">{}</span><span class="s1"> on chrom </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">chrom</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">orchestrate_insertion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="s1">&#39;uniform&#39;</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.001</span><span class="p">):</span>
+        <span class="n">chrom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pick_chromosomes</span><span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_location_on_sequence</span><span class="p">(</span><span class="n">genome</span><span class="p">[</span><span class="n">chrom</span><span class="p">])</span>
+        <span class="n">event_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_event_length</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="n">new_seq_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_location_on_sequence</span><span class="p">(</span><span class="n">genome</span><span class="p">[</span><span class="n">chrom</span><span class="p">])</span>
+        <span class="n">new_seq_end</span> <span class="o">=</span> <span class="n">new_seq_start</span> <span class="o">+</span> <span class="n">event_length</span>
+        <span class="n">new_seq</span> <span class="o">=</span> <span class="n">genome</span><span class="p">[</span><span class="n">chrom</span><span class="p">][</span><span class="n">new_seq_start</span><span class="p">:</span><span class="n">new_seq_end</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracker</span><span class="o">.</span><span class="n">create_insertion</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">new_seq</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Orchestrated insertion at position </span><span class="si">{}</span><span class="s1"> on chrom </span><span class="si">{}</span><span class="s1"> adding bases from position </span><span class="si">{}</span><span class="s1"> to </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">start</span><span class="p">,</span>
+         <span class="n">chrom</span><span class="p">,</span> <span class="n">new_seq_start</span><span class="p">,</span> <span class="n">new_seq_end</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">generate_structural_variations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
+        <span class="n">variations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">structural_variations_probabilities</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+                <span class="n">number</span><span class="p">,</span> <span class="n">structural_variations_probabilities</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">variation</span> <span class="ow">in</span> <span class="n">variations</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">structural_variations</span><span class="p">[</span><span class="n">variation</span><span class="p">](</span><span class="n">genome</span><span class="p">)</span>
+
+    <span class="c1"># Create small insertions and small deletions</span>
+    <span class="k">def</span> <span class="nf">generate_indels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
+        <span class="n">variations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">list</span><span class="p">([</span><span class="s1">&#39;insertion&#39;</span><span class="p">,</span> <span class="s1">&#39;deletion&#39;</span><span class="p">]),</span> <span class="n">number</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">variation</span> <span class="ow">in</span> <span class="n">variations</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">structural_variations</span><span class="p">[</span><span class="n">variation</span><span class="p">](</span><span class="n">genome</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+
+    <span class="c1"># Actually collapses the list of changes    </span>
+    <span class="k">def</span> <span class="nf">generate_fasta_and_bed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">genome</span><span class="p">):</span>
+        <span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="n">log_data_frame</span><span class="p">)</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">tracker</span><span class="o">.</span><span class="n">collapse_list</span><span class="p">(</span><span class="n">genome</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">genome</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bed_correct</span><span class="p">(</span><span class="n">log_data_frame</span><span class="p">))</span>
+
+    <span class="c1"># We need to store insertions as same start and end. Let&#39;s correct that when outputting bed files</span>
+    <span class="k">def</span> <span class="nf">bed_correct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+        <span class="n">same_vals</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;end&#39;</span><span class="p">]]</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">same_vals</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;end&#39;</span><span class="p">]</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="k">return</span> <span class="n">df</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">TumorSim</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Nick De Veaux, Evan Biederstedt and Dayanne Martins de Castro.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
