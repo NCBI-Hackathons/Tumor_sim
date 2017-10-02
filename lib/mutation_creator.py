@@ -2,6 +2,9 @@ from Bio import SeqIO
 from random import randint
 
 class Mutation_Creator:
+    """ Mutation_Creator class operates on mutable sequences to create mutations,
+        with functions to create deletions, snvs(single nucleotide variants),
+        insertions, inversions, and translocations"""
     def create_deletion(self, mutable_seq, start, end):
         new_seq = mutable_seq[:start] + mutable_seq[end:]
         del mutable_seq

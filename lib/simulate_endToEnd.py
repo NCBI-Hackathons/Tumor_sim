@@ -52,6 +52,8 @@ def write_bed(genome_offset, dframe, path):
     corrected_bed.to_csv(path, index=False)
 
 def offset_bed(df, genome_offset):
+    """Returns bed positions that have been corrected for 
+    the length of the sequence of trailing 'N' characters"""
     for chrom in genome_offset:
         per_chrom = df[df['chrom'] == chrom]
         df.ix[per_chrom.index, 'end'] += genome_offset[chrom]

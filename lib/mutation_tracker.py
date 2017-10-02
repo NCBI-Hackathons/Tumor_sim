@@ -2,7 +2,12 @@ from mutation_creator import Mutation_Creator
 import pandas as pd
 
 class Mutation_Tracker:
-
+    """ Mutation_Tracker holds on to the history of modifications to a genome. 
+        It shares many function names with Mutation_Creator, calling into it 
+        to make changes to the mutable sequences, storing those changes in 
+        bed format in self.list, and a dictionary with pointers to the function
+        calls in self.function_dict. It uses self.function_dict so that the changes
+        can be made in position order, maintaining correct position tracking."""
     def __init__(self):
         self.creator = Mutation_Creator()
         self.list = []
@@ -47,8 +52,10 @@ class Mutation_Tracker:
         self.create_insertion(chrom_source, start_source, new_seq_source, name=name_insertion_source)
         self.create_insertion(chrom_target, start_target, new_seq_target, name=name_insertion_target)
 
-
     def collapse_list(self, genome):
+        """ Takes all pending mutations, and orders them along the genome from end to start (descending).
+        If the changes are overlapping, the one closer to the genome start whose end extends past the 
+        previous mutation (by descending order's) start gets dropped"""
         log_data_frame = pd.DataFrame(self.list)
         log_data_frame.columns = ['chrom', 'start', 'end', 'name', 'alt', 'uid']
         log_data_frame = log_data_frame.sort_values(['chrom', 'start', 'end'], ascending = [False, False, False])
@@ -62,12 +69,12 @@ class Mutation_Tracker:
         # Logic for avoiding overlaps
             chrom = log_data_frame.loc[uid, 'chrom']
             if log_data_frame.loc[uid, 'end'] <= previous_starts[chrom]:
-        #         # Have to modify the parameters because the mutable seq needs to get passed in
+                # Have to modify the parameters because the mutable seq needs to get passed in
                 func = self.function_dict.pop(uid)
                 func['params'][0] = genome[chrom]
                 mutable_genome[chrom] = func['func'](*func['params'])
             else:
-        #         # Drop row from DataFrame
+                # Drop row from DataFrame
                 to_drop.append(uid)
             previous_starts[chrom] = log_data_frame.loc[uid, 'start']
         log_data_frame.drop(to_drop, axis=0, inplace=True)
