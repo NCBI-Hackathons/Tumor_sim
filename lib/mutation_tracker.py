@@ -2,7 +2,7 @@ from mutation_creator import Mutation_Creator
 import pandas as pd
 
 class Mutation_Tracker:
-    """ Mutation_Tracker holds on to the history of modifications to a genome. 
+    """ Mutation_Tracker tracks the history of mutations that modify a genome. 
         It shares many function names with Mutation_Creator, calling into it 
         to make changes to the mutable sequences, storing those changes in 
         bed format in self.list, and a dictionary with pointers to the function
