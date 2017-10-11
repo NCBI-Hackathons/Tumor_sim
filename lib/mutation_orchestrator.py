@@ -1,5 +1,6 @@
 from Bio import SeqIO
 import numpy as np
+import pandas as pd
 from mutation_creator import Mutation_Creator
 from mutation_tracker import Mutation_Tracker
 import logging
