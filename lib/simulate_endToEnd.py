@@ -21,12 +21,10 @@ def remove_trailing_N_characters(sequence):
     """ Strings representing the nucleotides typically start and end with 
         repeating sequences of the 'N' character. This function strips them 
         from the right and left side of the input sequence. """ 
-    original_len_seq = len(sequence)
-    while sequence[0] == 'N':
-        sequence.pop(0)
-    offset = original_len_seq - len(sequence)
-    while sequence[-1] == 'N':
-        sequence.pop(-1)
+    start_index = len(str(sequence)) - len(str(sequence).lstrip("N"))
+    end_index = len(str(sequence).rstrip("N"))  
+    sequence = sequence[start_index:end_index]
+    offset = start_index
     return (sequence, offset)
 
 def read_fasta_normal(input_fasta_file):
@@ -83,7 +81,6 @@ def main(args):
 
     ## output complement 3'-5' strand normal
     normal_complement = create_complementary_genome(mutated_genome)
-<<<<<<< HEAD
     write_fasta(normal_complement, output_complement_normal_fasta_file)
 
     ## add germline InDels ("small InDels")
@@ -92,10 +89,9 @@ def main(args):
     write_fasta(indeled_genome, output_normal_fasta_file)
     indel_bed = orchestrator.get_pandas_dataframe()
     write_bed(genome_offset, indel_bed, output_normal_bedfile)   ### write out "normalsim" bedpe
-=======
     write_fasta(normal_complement, args['output_complement_normal_fasta'])
     del normal_complement
->>>>>>> fa70c54511e12045c9d10cfb8df4cc9eba606062
+
 
     # add structural varations
     orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])
