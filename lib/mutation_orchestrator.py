@@ -82,7 +82,7 @@ class Mutation_Orchestrator:
     # Expected value of event is 1/p
     def get_event_length(self, p=0.6):
         z = np.random.geometric(p)
-        return z[0]
+        return z
 
     # Duplication currently only goes one direction (forward)
     # Creates a variable amount of duplications (num_duplications, drawn from geometric dist)
