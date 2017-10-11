@@ -54,7 +54,6 @@ class TestMutationOrchestrator(unittest.TestCase):
         number = 8 
         s = self.mo.generate_indels(self.genome, number)
         self.assertEqual(None, s)
-<<<<<<< HEAD
         gg = self.mo.generate_fasta(self.genome)
         dataframe = self.mo.get_pandas_dataframe()
     
@@ -66,9 +65,8 @@ class TestMutationOrchestrator(unittest.TestCase):
         self.assertEqual(None, s)
         ##gg = self.mo.generate_fasta(self.genome)
         ##dataframe = self.mo.get_pandas_dataframe()
-=======
         (gg, bed) = self.mo.generate_fasta_and_bed(self.genome)
->>>>>>> fa70c54511e12045c9d10cfb8df4cc9eba606062
+
 
     def test_get_location_on_sequence(self):
         self.genome = {'chr1': MutableSeq("NANNNNNNNNN", generic_dna)}
