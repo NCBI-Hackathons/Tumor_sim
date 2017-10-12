@@ -80,8 +80,8 @@ class Mutation_Orchestrator:
 
     # Models exponential decay, discretely
     # Expected value of event is 1/p
-    def get_event_length(self, p=0.6):
-        z = np.random.geometric(p)
+    def get_event_length(self, p=0.6, number = 1):
+        z = np.random.geometric(p, size=number)
         return z[0]
 
     # Duplication currently only goes one direction (forward)

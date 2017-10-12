@@ -18,15 +18,13 @@ def write_fasta(genome, output_fasta_file):
         SeqIO.write(output_seqs, output_handle, "fasta")
 
 def remove_trailing_N_characters(sequence):
-    """ Strings representing the nucleotides typically start and end with 
-        repeating sequences of the 'N' character. This function strips them 
-        from the right and left side of the input sequence. """ 
-    original_len_seq = len(sequence)
-    while sequence[0] == 'N':
-        sequence.pop(0)
-    offset = original_len_seq - len(sequence)
-    while sequence[-1] == 'N':
-        sequence.pop(-1)
+    """ Strings representing the nucleotides typically start and end with
+        repeating sequences of the 'N' character. This function strips them
+        from the right and left side of the input sequence. """
+    start_index = len(str(sequence)) - len(str(sequence).lstrip("N"))
+    end_index = len(str(sequence).rstrip("N"))
+    sequence = sequence[start_index:end_index]
+    offset = start_index
     return (sequence, offset)
 
 def read_fasta_normal(input_fasta_file):
