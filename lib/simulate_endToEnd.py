@@ -72,7 +72,6 @@ def main(args):
 
     orchestrator = Mutation_Orchestrator()
     # add germilne SNVs & InDels
-    print("print args germline snvs " + args['number_germline_snvs'])
     mutated_genome = orchestrator.snv_fast(mutated_genome, args['number_germline_snvs'])
     orchestrator.generate_indels(mutated_genome, args['number_germline_indels'])
     (mutated_genome, snv_and_indel_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
