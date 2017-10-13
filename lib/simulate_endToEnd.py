@@ -112,20 +112,26 @@ if __name__ == "__main__":
                         help='file path for the output complement 3-5 strand tumor (cancer genome) fasta')
     parser.add_argument('--output_complement_normal_fasta',
                         help='file path for the output complement 3-5 strand normal (SNV-added) fasta')
-    parser.add_argument('--number_snvs',
+    parser.add_argument('--number_germline_snvs',
                         default = 100,
-                        help="number of single nucleotide variants to add to the normal genome")
-    parser.add_argument('--number_indels',
+                        help="number of germline single nucleotide variants to add to the normal genome")
+    parser.add_argument('--number_germline_indels',
                         default = 100,
-                        help="number of small insertions and deletions to add to the normal genome")
+                        help="number of small germline insertions and deletions to add to the normal genome")
+    parser.add_argument('--number_somatic_snvs',
+                        default = 100,
+                        help="number of somatic single nucleotide variants to add to the tumor genome")
+    parser.add_argument('--number_somatic_indels',
+                        default = 100,
+                        help="number of somatic insertions and deletions to add to the tumor genome")
     parser.add_argument('--number_of_tumorSVs',
                         default = 50,
-                        help="number of structural variations to add to the tumor genome")
+                        help="number of (somatic) structural variations to add to the tumor genome")
     parser.add_argument('--output_normal_bedfile',
                         default = "outputs/normal.bed",
-                        help='file path for the output normal (SNV-added) bedfile')
+                        help='file path for the output normal (germline variants-added) bedfile')
     parser.add_argument('--output_tumor_bedfile',
                         default="outputs/tumorsim.bed",
-                        help='file path for the output tumor (cancer genome) bedfile')
+                        help='file path for the output tumor (somatic variants-added) bedfile')
     args = vars(parser.parse_args())
     main(args)
