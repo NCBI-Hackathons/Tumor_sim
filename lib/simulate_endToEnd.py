@@ -73,7 +73,7 @@ def main(args):
     orchestrator = Mutation_Orchestrator()
     # add germilne SNVs & InDels
     mutated_genome = orchestrator.snv_fast(mutated_genome, args['number_germline_snvs'], germline=True)
-    orchestrator.generate_indels(mutated_genome, args['number_germline_indels'], germline=True)
+    ##orchestrator.generate_indels(mutated_genome, args['number_germline_indels'], germline=True)
     (mutated_genome, snv_and_indel_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
     ### write out "normalsim" bedpe and fasta
     write_fasta(mutated_genome, args['output_normal_fasta'])
@@ -86,14 +86,14 @@ def main(args):
         del normal_complement
 
     # add somatic SNVs & InDels
-    orchestrator.snv_fast(mutated_genome, args['number_somatic_snvs'], germline=False)
-    orchestrator.generate_indels(mutated_genome, args['number_somatic_indels'], germline=False)
+    #orchestrator.snv_fast(mutated_genome, args['number_somatic_snvs'], germline=False)
+    #orchestrator.generate_indels(mutated_genome, args['number_somatic_indels'], germline=False)
     
     # add (somatic) structural varations
-    orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])
-    (mutated_genome, tumor_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
-    write_fasta(mutated_genome, args['output_tumor_fasta'])
-    write_bed(genome_offset, tumor_bed, args['output_tumor_bedfile'])  ### write out "tumorsim" bedpe
+    #orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])
+    #(mutated_genome, tumor_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
+    #write_fasta(mutated_genome, args['output_tumor_fasta'])
+    #write_bed(genome_offset, tumor_bed, args['output_tumor_bedfile'])  ### write out "tumorsim" bedpe
 
     ## output complement 3'-5' strand tumor, if flag exists
     if args['output_complement_tumor_fasta'] is not None:
