@@ -21,10 +21,10 @@ somatic_indel_probabilities = {
 }
 structural_variations_probabilities = {
     'deletion': 0.2,
-        'translocation': 0.2,
-        'duplication' : 0.2,
-        'inversion' : 0.2,
-        'insertion' : 0.2
+    'translocation': 0.2,
+    'duplication' : 0.2,
+    'inversion' : 0.2,
+    'insertion' : 0.2
 }
 
 
