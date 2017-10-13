@@ -3,7 +3,7 @@ import numpy as np
 from mutation_creator import Mutation_Creator
 from mutation_tracker import Mutation_Tracker
 import logging
-from probabilities_config import structural_variations_probabilities, snv_probabilities
+from probabilities_config import structural_variations_probabilities, germline_snv_probabilities
 
 class Mutation_Orchestrator:
     """ Mutation_Orchestrator is a class that operates on a genome to make a mutation.
@@ -26,7 +26,7 @@ class Mutation_Orchestrator:
     def snv_fast(self, genome, number):
         chroms = self.pick_chromosomes(genome, number)
         ### assume for normal bases 
-        new_bases = np.random.choice(list(snv_probabilities.keys()), number, snv_probabilities.values())
+        new_bases = np.random.choice(list(germline_snv_probabilities.keys()), number, germline_snv_probabilities.values())
         for i in range(number):
             start = self.get_location_on_sequence(genome[chroms[i]])
             genome[chroms[i]] = self.creator.create_snv(genome[chroms[i]], start, new_bases[i])
@@ -80,10 +80,10 @@ class Mutation_Orchestrator:
 
     # Models exponential decay, discretely
     # Expected value of event is 1/p
-    def get_event_length(self, p=0.6):
-        z = np.random.geometric(p)
+    def get_event_length(self, p=0.6, number = 1):
+        z = np.random.geometric(p, size = number)
         return z[0]
-
+    
     # Duplication currently only goes one direction (forward)
     # Creates a variable amount of duplications (num_duplications, drawn from geometric dist)
     def orchestrate_duplication(self, genome, distribution='uniform'):

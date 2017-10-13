@@ -6,9 +6,16 @@ structural_variations_probabilities = {
         'inversion' : 0.2,
         'insertion' : 0.2
 }
-snv_probabilities = {
+germline_snv_probabilities = {
     'A':.25,
     'C':.25,
     'T':.25,
     'G':.25
 }
+somatic_snv_probabilities = {
+    'A':.25,
+    'C':.25,
+    'T':.25,
+    'G':.25
+}
+
