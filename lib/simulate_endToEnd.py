@@ -72,8 +72,8 @@ def main(args):
 
     orchestrator = Mutation_Orchestrator()
     # add germilne SNVs & InDels
-    mutated_genome = orchestrator.snv_fast(mutated_genome, args['number_snvs'])
-    orchestrator.generate_indels(mutated_genome, args['number_indels'])
+    mutated_genome = orchestrator.snv_fast(mutated_genome, args['number_germline_snvs'])
+    orchestrator.generate_indels(mutated_genome, args['number_germline_indels'])
     (mutated_genome, snv_and_indel_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
     ### write out "normalsim" bedpe and fasta
     write_fasta(mutated_genome, args['output_normal_fasta'])
