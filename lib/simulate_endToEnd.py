@@ -87,11 +87,15 @@ def main(args):
     write_fasta(normal_complement, args['output_complement_normal_fasta'])
     del normal_complement
 
+ 
     # add structural varations
-    orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])
-    (mutated_genome, tumor_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
-    write_fasta(mutated_genome, args['output_tumor_fasta'])
-    write_bed(genome_offset, tumor_bed, args['output_tumor_bedfile'])  ### write out "tumorsim" bedpe
+    if (args['number_of_tumorSVs']==0):
+        pass
+    else:
+        orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])
+        (mutated_genome, tumor_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
+        write_fasta(mutated_genome, args['output_tumor_fasta'])
+        write_bed(genome_offset, tumor_bed, args['output_tumor_bedfile'])  ### write out "tumorsim" bedpe
 
     ## output complement 3'-5' strand tumor
     tumor_complement = create_complementary_genome(mutated_genome)
