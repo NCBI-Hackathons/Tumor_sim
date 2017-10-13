@@ -76,8 +76,11 @@ def main(args):
     orchestrator.generate_indels(mutated_genome, args['number_indels'])
     (mutated_genome, snv_and_indel_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
     ### write out "normalsim" bedpe and fasta
-    write_fasta(mutated_genome, args['output_normal_fasta'])
-    write_bed(genome_offset, snv_and_indel_bed, args['output_normal_bedfile'])  
+    if ((args['number_snvs']==0) & (args['number_indels']==0)):
+        pass
+    else:
+        write_fasta(mutated_genome, args['output_normal_fasta'])
+        write_bed(genome_offset, snv_and_indel_bed, args['output_normal_bedfile'])  
 
     ## output complement 3'-5' strand normal
     normal_complement = create_complementary_genome(mutated_genome)
