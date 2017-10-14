@@ -72,12 +72,15 @@ def main(args):
 
     orchestrator = Mutation_Orchestrator()
     # add germilne SNVs & InDels
-    mutated_genome = orchestrator.snv_fast(mutated_genome, args['number_germline_snvs'], germline=True)
-    orchestrator.generate_indels(mutated_genome, args['number_germline_indels'], germline=True)
-    (mutated_genome, snv_and_indel_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
-    ### write out "normalsim" bedpe and fasta
-    write_fasta(mutated_genome, args['output_normal_fasta'])
-    write_bed(genome_offset, snv_and_indel_bed, args['output_normal_bedfile'])    ## records changes to reference FASTA
+    if ((args['number_germline_snvs']==0) & (args['number_germline_indels']==0)):
+        pass
+    else:
+        mutated_genome = orchestrator.snv_fast(mutated_genome, args['number_germline_snvs'], germline=True)
+        orchestrator.generate_indels(mutated_genome, args['number_germline_indels'], germline=True)
+        (mutated_genome, snv_and_indel_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
+        ### write out "normalsim" bedpe and fasta
+        write_fasta(mutated_genome, args['output_normal_fasta'])
+        write_bed(genome_offset, snv_and_indel_bed, args['output_normal_bedfile'])    ## records changes to reference FASTA
 
     ## output complement 3'-5' strand normal, if flag exists
     if args['output_complement_normal_fasta'] is not None:
@@ -86,11 +89,18 @@ def main(args):
         del normal_complement
 
     # add somatic SNVs & InDels
-    orchestrator.snv_fast(mutated_genome, args['number_somatic_snvs'], germline=False)
-    orchestrator.generate_indels(mutated_genome, args['number_somatic_indels'], germline=False)
+    if ((args['number_somatic_snvs']==0) & (args['number_somatic_indels']==0)):
+        pass
+    else:
+        orchestrator.snv_fast(mutated_genome, args['number_somatic_snvs'], germline=False)
+        orchestrator.generate_indels(mutated_genome, args['number_somatic_indels'], germline=False)
     
     # add (somatic) structural varations
-    orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])
+    if (args['number_of_tumorSVs']==0):
+        pass
+    else:
+        orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])
+
     (mutated_genome, tumor_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
     write_fasta(mutated_genome, args['output_tumor_fasta'])
     write_bed(genome_offset, tumor_bed, args['output_tumor_bedfile'])  ### write out "tumorsim" bedpe
