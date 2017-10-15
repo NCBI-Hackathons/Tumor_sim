@@ -27,6 +27,15 @@ structural_variations_probabilities = {
     'insertion' : 0.2
 }
 
+### TO DO! (but arguably not necessary)
+### we should probably allow users to set average tumor SV lengths via
+### probabilities_config.py
+### prob = np.random.uniform(0.001, 0.0000001, 1)   ## draw prob from uniform, 0.001 to 1e-7
+### some silly parameter to "tune" if they wanted
+
+### same with duplications parameters
+### duplication_prob = np.random.uniform(0.05, 0.7, 1)  ## with np.random.geometric(p, 1), these values are 14 to 2
+## num_duplications = self.get_event_length(p=duplication_prob[0]) # exponential ranging from 1 to 10
 
 if sum(germline_snv_probabilities.values()) !=1:
     raise ValueError("Error in probabilities_config.py: sum of germline SNV probabilites must equal 1")

@@ -62,19 +62,19 @@ class Mutation_Orchestrator:
     def orchestrate_deletion(self, genome, distribution='uniform', p=0.001):
         chrom = self.pick_chromosomes(genome)[0]
         start = self.get_location_on_sequence(genome[chrom])
-        end = self.get_end_of_event(start, genome[chrom], p)
+        end = self.get_end_of_event(start, genome[chrom], p=p)
         self.tracker.create_deletion(chrom, start, end)
         logging.info('Orchestrated deletion from {} to {} in chrom {}'.format(start, end, chrom))
 
-    def orchestrate_translocation(self, genome, distribution='uniform'):
+    def orchestrate_translocation(self, genome, distribution='uniform', p=0.001):
         if len(genome) == 1:
             print('No translocations allowed: genome too small')
             return
         (chrom_source, chrom_target) = self.pick_chromosomes(genome, number = 2, replace = False)
         start_source = self.get_location_on_sequence(genome[chrom_source])
         start_target = self.get_location_on_sequence(genome[chrom_target])
-        end_source = self.get_end_of_event(start_source, genome[chrom_source], p=0.001)
-        end_target = self.get_end_of_event(start_target, genome[chrom_target], p=0.001)
+        end_source = self.get_end_of_event(start_source, genome[chrom_source], p=p)
+        end_target = self.get_end_of_event(start_target, genome[chrom_target], p=p)
         new_seq_source = genome[chrom_target][start_target:end_target]
         new_seq_target = genome[chrom_source][start_source:end_source]
         self.tracker.create_translocation(chrom_source, chrom_target, start_source,
@@ -95,11 +95,12 @@ class Mutation_Orchestrator:
     
     # Duplication currently only goes one direction (forward)
     # Creates a variable amount of duplications (num_duplications, drawn from geometric dist)
-    def orchestrate_duplication(self, genome, distribution='uniform'):
+    def orchestrate_duplication(self, genome, distribution='uniform', p=0.01):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
-        end = self.get_end_of_event(start, genome[chrom], p=0.001)
-        num_duplications = self.get_event_length(p=0.6) # exponential ranging from 1 to 10
+        end = self.get_end_of_event(start, genome[chrom], p=p)
+        duplication_prob = np.random.uniform(0.05, 0.7, 1)  ## with np.random.geometric(p, 1), these values are 14 to 2
+        num_duplications = self.get_event_length(p=duplication_prob[0]) # exponential ranging from 1 to 10
         new_seq = str(genome[chrom][start:end]) * num_duplications
         self.tracker.create_insertion(chrom, start, new_seq,
              name='duplication (times {})'.format(num_duplications))
@@ -108,11 +109,11 @@ class Mutation_Orchestrator:
     def orchestrate_inversion(self, genome, distribution='uniform'):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
-        end = self.get_end_of_event(start, genome[chrom], p=0.001)
+        end = self.get_end_of_event(start, genome[chrom], p=p)
         self.tracker.create_inversion(chrom, start, end)
         logging.info('Orchestrated inversion at position {} to {} on chrom {}'.format(start, end, chrom))
 
-    def orchestrate_insertion(self, genome, distribution='uniform', p=0.001):
+    def orchestrate_insertion(self, genome, distribution='uniform', p=0.01):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
         new_seq_start = self.get_location_on_sequence(genome[chrom])
@@ -126,7 +127,9 @@ class Mutation_Orchestrator:
         variations = np.random.choice(list(structural_variations_probabilities.keys()),
                 number, structural_variations_probabilities.values())
         for variation in variations:
-            self.structural_variations[variation](genome)
+            sv_prob = np.random.uniform(0.001, 0.0000001, 1)   ## draw prob from uniform, 0.001 to 1e-7; large-scale somatic events
+            self.structural_variations[variation](genome, p=sv_prob[0])
+            del sv_prob
 
     # Create small insertions and small deletions
     def generate_indels(self, genome, number, germline = True):
