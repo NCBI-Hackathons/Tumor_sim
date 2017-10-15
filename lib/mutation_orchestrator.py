@@ -54,7 +54,7 @@ class Mutation_Orchestrator:
 
     # Default to being a big deletion, but p=0.6 makes it a small deletion
     def orchestrate_deletion(self, genome, distribution='uniform', p=0.001, fixed_chrom=None, chromothripsis=False, list_of_reserved_chroms=None):
-        if ((fixed_chrom == None) & (chromothripsis=True)):
+        if ((fixed_chrom == None) & (chromothripsis==True)):
             chrom = self.pick_chromosomes(genome, number = 1)[0]
             while chrom in list_of_reserved_chroms:                        ### if chromothripsis, check to make sure random chromosomes are not in list of chromothripsis chromosomes.
                 chrom = self.pick_chromosomes(genome, number = 1)[0]
@@ -70,7 +70,7 @@ class Mutation_Orchestrator:
     def orchestrate_translocation(self, genome, distribution='uniform', fixed_chrom=None, chromothripsis=False, list_of_reserved_chroms=None):
         if len(genome) == 1:
             return
-        if ((fixed_chrom == None) & (chromothripsis=True)):
+        if ((fixed_chrom == None) & (chromothripsis==True)):
             chrom = self.pick_chromosomes(genome, number = 1)[0]
             while chrom in list_of_reserved_chroms:                        ### if chromothripsis, check to make sure random chromosomes are not in list of chromothripsis chromosomes.
                 chrom = self.pick_chromosomes(genome, number = 1)[0]
@@ -93,7 +93,7 @@ class Mutation_Orchestrator:
     # Duplication currently only goes one direction (forward)
     # Creates a variable amount of duplications (num_duplications, drawn from geometric dist)
     def orchestrate_duplication(self, genome, distribution='uniform', fixed_chrom=None, chromothripsis=False, list_of_reserved_chroms=None):
-        if ((fixed_chrom == None) & (chromothripsis=True)):
+        if ((fixed_chrom == None) & (chromothripsis==True)):
             chrom = self.pick_chromosomes(genome, number = 1)[0]
             while chrom in list_of_reserved_chroms:                        ### if chromothripsis, check to make sure random chromosomes are not in list of chromothripsis chromosomes.
                 chrom = self.pick_chromosomes(genome, number = 1)[0]
@@ -110,7 +110,7 @@ class Mutation_Orchestrator:
         logging.info('Orchestrated duplication at po`tion {} to {} on chrom {}'.format(start, end, chrom))
 
     def orchestrate_inversion(self, genome, distribution='uniform', fixed_chrom=None, chromothripsis=False, list_of_reserved_chroms=None):
-        if ((fixed_chrom == None) & (chromothripsis=True)):
+        if ((fixed_chrom == None) & (chromothripsis==True)):
             chrom = self.pick_chromosomes(genome, number = 1)[0]
             while chrom in list_of_reserved_chroms:                        ### if chromothripsis, check to make sure random chromosomes are not in list of chromothripsis chromosomes.
                 chrom = self.pick_chromosomes(genome, number = 1)[0]
@@ -124,7 +124,7 @@ class Mutation_Orchestrator:
         logging.info('Orchestrated inversion at position {} to {} on chrom {}'.format(start, end, chrom))
 
     def orchestrate_insertion(self, genome, distribution='uniform', p=0.001, fixed_chrom=None, chromothripsis=False, list_of_reserved_chroms=None):
-        if ((fixed_chrom == None) & (chromothripsis=True)):
+        if ((fixed_chrom == None) & (chromothripsis==True)):
             chrom = self.pick_chromosomes(genome, number = 1)[0]
             while chrom in list_of_reserved_chroms:                        ### if chromothripsis, check to make sure random chromosomes are not in list of chromothripsis chromosomes.
                 chrom = self.pick_chromosomes(genome, number = 1)[0]
@@ -157,11 +157,11 @@ class Mutation_Orchestrator:
         for variation in variations:
             self.structural_variations[variation](genome)
 
-    def generate_chromothripsis(self, genome, number = number_of_chromothriptic_rearrangements):  ## not including inversions
+    def generate_chromothripsis(self, genome, chromosome, number = number_of_chromothriptic_rearrangements):  ## not including inversions; number_of_chromothriptic_rearrangements from probabilities_config.py
         variations = np.random.choice(list(chromothripsis_probabilities.keys()),
                                   number, chromothripsis_probabilities.values())
         for variation in variations:
-            self.structural_variations[variation](genome)
+            self.structural_variations[variation](genome, fixed_chrom = chromosome, chromothripsis=True)
 
     # Create small insertions and small deletions
     def generate_indels(self, genome, number):

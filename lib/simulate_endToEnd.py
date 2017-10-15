@@ -111,6 +111,8 @@ def reserve_chromothripsis_chromosomes(genome, list_of_reserved_chroms):
 
 
 def main(args):
+    
+    reserved_chroms = []
      # read genome fasta
     (mutated_genome, genome_offset) = read_fasta_normal(args['input_fasta'])
 
@@ -172,7 +174,7 @@ if __name__ == "__main__":
                         default = 10000,
                         help="number of structural variations to add to the tumor genome")
     parser.add_argument('--chromothripsis_number_of_chroms',
-                        default = 1,
+                        default = None,
                         help="number of chromosome-wide chromthriptic events to add to the tumor genome",
                         type=check_chromothripsis_arg)
     parser.add_argument('--output_normal_bedfile',
