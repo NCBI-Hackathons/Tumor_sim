@@ -67,18 +67,42 @@ def create_complementary_genome(genome):
     return new_genome
 
 ## exception check for argparse, chromothripsis
-### QUESITON: given this function, how should I restrict chromosomes w/r.t. BFBs?
 def check_chromothripsis_arg(value):
     ivalue = int(value)
     if ivalue > 24:
         raise argparse.ArgumentTypeError("%s is an invalid number of chromosomes for --chromothripsis_number_of_chroms" % value)
     return ivalue
 
+def reserve_chromothripsis_chromosomes(genome, number):
+    for i in range(args['chromothripsis_number_of_chroms']):
+    ##
+    ## randomly pick chromosome
+    ## check if chromosome in reserved list
+    ## if not in reserved list, then add to list
+   ### if in reserved list, then randomly pick again
+
+
+
+### Now, feed in list to chromosthirpsis, with events only happening at that list
+
+## SV events below must ignore these chromosomes
+## flag: if chromothripsis, then check whether reserved chromosome is in the list. If so, ignore
+
+### should re-write, as need to check list whether a chromosome is reserved or not
+def pick_chromosomes(self, genome, number=1, replace=True):
+    relative_lengths = np.array([len(genome[x]) for x in genome])
+    probabilities = relative_lengths / float(relative_lengths.sum())
+    chroms = np.random.choice(list(genome.keys()), number, replace=replace ,p=probabilities.tolist())
+    return chroms
+
+### black list these chromosomes
+
 
 def main(args):
      # read genome fasta
     (mutated_genome, genome_offset) = read_fasta_normal(args['input_fasta'])
 
+    ## normal
     orchestrator = Mutation_Orchestrator()
     # add germilne SNVs & InDels
     mutated_genome = orchestrator.snv_fast(mutated_genome, args['number_snvs'])
@@ -93,6 +117,11 @@ def main(args):
     write_fasta(normal_complement, args['output_complement_normal_fasta'])
     del normal_complement
 
+
+    ## tumor
+    reserved_chroms = []
+    
+    
     # add structural varations
     orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])
     (mutated_genome, tumor_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)

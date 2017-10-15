@@ -13,11 +13,10 @@ snv_probabilities = {
     'G':.25
 }
 chromothripsis_probabilities = {
-    'deletion': 0.2,
-    'translocation': 0.2,
-    'duplication' : 0.2,
-    'inversion' : 0.2,
-    'insertion' : 0.2,
+    'deletion': 0.25,
+    'translocation': 0.25,
+    'duplication' : 0.25,
+    'inversion' : 0.25,
 }
 
-number_of_chromothripsis_events = 100
+number_of_chromothriptic_rearrangements = 100

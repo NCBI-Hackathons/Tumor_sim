@@ -3,7 +3,7 @@ import numpy as np
 from mutation_creator import Mutation_Creator
 from mutation_tracker import Mutation_Tracker
 import logging
-from probabilities_config import structural_variations_probabilities, snv_probabilities
+from probabilities_config import structural_variations_probabilities, snv_probabilities, chromothripsis_probabilities, number_of_chromothriptic_rearrangements
 
 class Mutation_Orchestrator:
     """ Mutation_Orchestrator is a class that operates on a genome to make a mutation.
@@ -116,6 +116,12 @@ class Mutation_Orchestrator:
     def generate_structural_variations(self, genome, number):
         variations = np.random.choice(list(structural_variations_probabilities.keys()),
                 number, structural_variations_probabilities.values())
+        for variation in variations:
+            self.structural_variations[variation](genome)
+
+def generate_chromothripsis(self, genome, number = number_of_chromothriptic_rearrangements):  ## not including inversions
+        variations = np.random.choice(list(chromothripsis_probabilities.keys()),
+                                  number, chromothripsis_probabilities.values())
         for variation in variations:
             self.structural_variations[variation](genome)
 
