@@ -49,6 +49,17 @@ class Mutation_Orchestrator:
         else:
             raise NotImplementedError("Only Uniform is implemented!")
 
+    # Guarantees the end of the event isn't outside the sequence
+    def get_end_of_event(self, start_pos, seq, p):
+        length = self.get_event_length(p)
+        return np.min([start_pos + length, len(seq)])
+
+    # Models exponential decay, discretely
+    # Expected value of event is 1/p
+    def get_event_length(self, p=0.6):
+        z = np.random.geometric(p)
+        return z[0]
+
     # Default to being a big deletion, but p=0.6 makes it a small deletion
     def orchestrate_deletion(self, genome, distribution='uniform', p=0.001):
         chrom = self.pick_chromosomes(genome)[0]
@@ -71,17 +82,6 @@ class Mutation_Orchestrator:
                         start_target, end_source, end_target, new_seq_source, new_seq_target)
         logging.info('Orchestrated translocation at position {} to position {} on chrom {} at position {} to position {} on chrom {}'.format(
             start_source, end_source, chrom_source, start_target, end_target, chrom_target))
-
-    # Guarantees the end of the event isn't outside the sequence
-    def get_end_of_event(self, start_pos, seq, p):
-        length = self.get_event_length(p)
-        return np.min([start_pos + length, len(seq)])
-
-    # Models exponential decay, discretely
-    # Expected value of event is 1/p
-    def get_event_length(self, p=0.6):
-        z = np.random.geometric(p)
-        return z[0]
 
     # Duplication currently only goes one direction (forward)
     # Creates a variable amount of duplications (num_duplications, drawn from geometric dist)
