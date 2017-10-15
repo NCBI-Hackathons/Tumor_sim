@@ -36,7 +36,7 @@ class Mutation_Orchestrator:
     def pick_chromosomes(self, genome, number=1, replace=True):
         relative_lengths = np.array([len(genome[x]) for x in genome])
         probabilities = relative_lengths / float(relative_lengths.sum())
-        chroms = np.random.choice(list(genome.keys()), number, replace=replace ,p=probabilities.tolist())
+        chroms = np.random.choice(list(genome.keys()), number, replace=replace, p=probabilities.tolist())
         return chroms
 
     def get_location_on_sequence(self, seq, distribution='uniform'):
@@ -50,18 +50,22 @@ class Mutation_Orchestrator:
             raise NotImplementedError("Only Uniform is implemented!")
 
     # Default to being a big deletion, but p=0.6 makes it a small deletion
-    def orchestrate_deletion(self, genome, distribution='uniform', p=0.001):
-        chrom = self.pick_chromosomes(genome)[0]
+    def orchestrate_deletion(self, genome, distribution='uniform', p=0.001, fixed_chrom=None):
+        if fixed_chrom == None:
+            chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
         end = self.get_end_of_event(start, genome[chrom], p)
         self.tracker.create_deletion(chrom, start, end)
         logging.info('Orchestrated deletion from {} to {} in chrom {}'.format(start, end, chrom))
 
-    def orchestrate_translocation(self, genome, distribution='uniform'):
+    def orchestrate_translocation(self, genome, distribution='uniform', fixed_chrom=None):
         if len(genome) == 1:
-            print('No translocations allowed: genome too small')
             return
-        (chrom_source, chrom_target) = self.pick_chromosomes(genome, number = 2, replace = False)
+        if fixed_chrom == None:
+            (chrom_source, chrom_target) = self.pick_chromosomes(genome, number = 2, replace=False)
+        else:
+            chrom_source = fixed_chrom
+            chrom_target = fixed_chrom
         start_source = self.get_location_on_sequence(genome[chrom_source])
         start_target = self.get_location_on_sequence(genome[chrom_target])
         end_source = self.get_end_of_event(start_source, genome[chrom_source], p=0.001)
@@ -86,8 +90,11 @@ class Mutation_Orchestrator:
 
     # Duplication currently only goes one direction (forward)
     # Creates a variable amount of duplications (num_duplications, drawn from geometric dist)
-    def orchestrate_duplication(self, genome, distribution='uniform'):
-        chrom = self.pick_chromosomes(genome, number = 1)[0]
+    def orchestrate_duplication(self, genome, distribution='uniform', fixed_chrom=None):
+        if fixed_chrom == None:
+            chrom = self.pick_chromosomes(genome, number = 1)[0]
+        else:
+            chrom = fixed_chrom
         start = self.get_location_on_sequence(genome[chrom])
         end = self.get_end_of_event(start, genome[chrom], p=0.001)
         num_duplications = self.get_event_length(p=0.6) # exponential ranging from 1 to 10
@@ -96,15 +103,21 @@ class Mutation_Orchestrator:
              name='duplication (times {})'.format(num_duplications))
         logging.info('Orchestrated duplication at po`tion {} to {} on chrom {}'.format(start, end, chrom))
 
-    def orchestrate_inversion(self, genome, distribution='uniform'):
-        chrom = self.pick_chromosomes(genome, number = 1)[0]
+    def orchestrate_inversion(self, genome, distribution='uniform', fixed_chrom=None):
+        if fixed_chrom == None:
+            chrom = self.pick_chromosomes(genome, number = 1)[0]
+        else:
+            chrom = fixed_chrom
         start = self.get_location_on_sequence(genome[chrom])
         end = self.get_end_of_event(start, genome[chrom], p=0.001)
         self.tracker.create_inversion(chrom, start, end)
         logging.info('Orchestrated inversion at position {} to {} on chrom {}'.format(start, end, chrom))
 
-    def orchestrate_insertion(self, genome, distribution='uniform', p=0.001):
-        chrom = self.pick_chromosomes(genome, number = 1)[0]
+    def orchestrate_insertion(self, genome, distribution='uniform', p=0.001, fixed_chrom=None):
+        if fixed_chrom == None:
+            chrom = self.pick_chromosomes(genome, number = 1)[0]
+        else:
+            chrom = fixed_chrom
         start = self.get_location_on_sequence(genome[chrom])
         new_seq_start = self.get_location_on_sequence(genome[chrom])
         new_seq_end = self.get_end_of_event(new_seq_start, genome[chrom], p)
@@ -119,7 +132,7 @@ class Mutation_Orchestrator:
         for variation in variations:
             self.structural_variations[variation](genome)
 
-def generate_chromothripsis(self, genome, number = number_of_chromothriptic_rearrangements):  ## not including inversions
+    def generate_chromothripsis(self, genome, number = number_of_chromothriptic_rearrangements):  ## not including inversions
         variations = np.random.choice(list(chromothripsis_probabilities.keys()),
                                   number, chromothripsis_probabilities.values())
         for variation in variations:
