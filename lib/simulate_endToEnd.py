@@ -80,9 +80,10 @@ def main(args):
     write_bed(genome_offset, snv_and_indel_bed, args['output_normal_bedfile'])  
 
     ## output complement 3'-5' strand normal
-    normal_complement = create_complementary_genome(mutated_genome)
-    write_fasta(normal_complement, args['output_complement_normal_fasta'])
-    del normal_complement
+    if args['output_complement_normal_fasta'] is not None:
+        normal_complement = create_complementary_genome(mutated_genome)
+        write_fasta(normal_complement, args['output_complement_normal_fasta'])
+        del normal_complement
 
     # add structural varations
     orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])
@@ -91,8 +92,9 @@ def main(args):
     write_bed(genome_offset, tumor_bed, args['output_tumor_bedfile'])  ### write out "tumorsim" bedpe
 
     ## output complement 3'-5' strand tumor
-    tumor_complement = create_complementary_genome(mutated_genome)
-    write_fasta(tumor_complement, args['output_complement_tumor_fasta'])
+    if args['output_complement_tumor_fasta'] is not None:
+        tumor_complement = create_complementary_genome(mutated_genome)
+        write_fasta(tumor_complement, args['output_complement_tumor_fasta'])
 
 
 if __name__ == "__main__":
@@ -107,19 +109,17 @@ if __name__ == "__main__":
                         default = "outputs/normalsim.fasta",
                         help='file path for the output normal (SNV-added) fasta')
     parser.add_argument('--output_complement_tumor_fasta',
-                        default="outputs/complement_tumorsim.fasta",
                         help='file path for the output complement 3-5 strand tumor (cancer genome) fasta')
     parser.add_argument('--output_complement_normal_fasta',
-                        default="outputs/complement_normalsim.fasta",
                         help='file path for the output complement 3-5 strand normal (SNV-added) fasta')
     parser.add_argument('--number_snvs',
-                        default = 3000,
+                        default = 100,
                         help="number of single nucleotide variants to add to the normal genome")
     parser.add_argument('--number_indels',
-                        default = 4150,
+                        default = 100,
                         help="number of small insertions and deletions to add to the normal genome")
     parser.add_argument('--number_of_tumorSVs',
-                        default = 10000,
+                        default = 50,
                         help="number of structural variations to add to the tumor genome")
     parser.add_argument('--output_normal_bedfile',
                         default = "outputs/normal.bed",

@@ -59,7 +59,6 @@ class Mutation_Orchestrator:
 
     def orchestrate_translocation(self, genome, distribution='uniform'):
         if len(genome) == 1:
-            print('No translocations allowed: genome too small')
             return
         (chrom_source, chrom_target) = self.pick_chromosomes(genome, number = 2, replace = False)
         start_source = self.get_location_on_sequence(genome[chrom_source])
