@@ -73,13 +73,31 @@ def check_chromothripsis_arg(value):
         raise argparse.ArgumentTypeError("%s is an invalid number of chromosomes for --chromothripsis_number_of_chroms" % value)
     return ivalue
 
-def reserve_chromothripsis_chromosomes(genome, number):
+
+### bad form, taken directly from `mutation_orchestrator.py`
+
+def pick_chromosomes(self, genome, number=1, replace=True):
+    relative_lengths = np.array([len(genome[x]) for x in genome])
+    probabilities = relative_lengths / float(relative_lengths.sum())
+    chroms = np.random.choice(list(genome.keys()), number, replace=replace ,p=probabilities.tolist())
+    return chroms
+
+
+##
+## randomly pick chromosome
+## check if chromosome in reserved list
+## if not in reserved list, then add to list
+### if in reserved list, then randomly pick again
+
+def reserve_chromothripsis_chromosomes(genome, list_of_reserved_chroms):
     for i in range(args['chromothripsis_number_of_chroms']):
-    ##
-    ## randomly pick chromosome
-    ## check if chromosome in reserved list
-    ## if not in reserved list, then add to list
-   ### if in reserved list, then randomly pick again
+        chosen_chrom = pick_chromosomes(genome, number=1)
+        if chosen_chrom not in list_of_reserved_chroms:
+            list_of_reserved_chroms.append(chosen_chrom)
+        else:
+            while chosen_chrom in list_of_reserved_chroms:
+                chosen_chrom = pick_chromosomes(genome, number=1)  ## if the chromosome is already in the list, pick again---better than a while True loop
+
 
 
 
@@ -88,14 +106,13 @@ def reserve_chromothripsis_chromosomes(genome, number):
 ## SV events below must ignore these chromosomes
 ## flag: if chromothripsis, then check whether reserved chromosome is in the list. If so, ignore
 
-### should re-write, as need to check list whether a chromosome is reserved or not
 def pick_chromosomes(self, genome, number=1, replace=True):
     relative_lengths = np.array([len(genome[x]) for x in genome])
     probabilities = relative_lengths / float(relative_lengths.sum())
     chroms = np.random.choice(list(genome.keys()), number, replace=replace ,p=probabilities.tolist())
     return chroms
 
-### black list these chromosomes
+
 
 
 def main(args):
