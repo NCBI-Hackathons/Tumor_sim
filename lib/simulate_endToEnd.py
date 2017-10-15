@@ -106,11 +106,6 @@ def reserve_chromothripsis_chromosomes(genome, list_of_reserved_chroms):
 ## SV events below must ignore these chromosomes
 ## flag: if chromothripsis, then check whether reserved chromosome is in the list. If so, ignore
 
-def pick_chromosomes(self, genome, number=1, replace=True):
-    relative_lengths = np.array([len(genome[x]) for x in genome])
-    probabilities = relative_lengths / float(relative_lengths.sum())
-    chroms = np.random.choice(list(genome.keys()), number, replace=replace ,p=probabilities.tolist())
-    return chroms
 
 
 

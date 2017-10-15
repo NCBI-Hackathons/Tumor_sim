@@ -49,19 +49,32 @@ class Mutation_Orchestrator:
         else:
             raise NotImplementedError("Only Uniform is implemented!")
 
+
+### stuff == check list of reserved chromsomes. while chrom in rese
+
     # Default to being a big deletion, but p=0.6 makes it a small deletion
-    def orchestrate_deletion(self, genome, distribution='uniform', p=0.001, fixed_chrom=None):
-        if fixed_chrom == None:
+    def orchestrate_deletion(self, genome, distribution='uniform', p=0.001, fixed_chrom=None, chromothripsis=False, list_of_reserved_chroms=None):
+        if ((fixed_chrom == None) & (chromothripsis=True)):
             chrom = self.pick_chromosomes(genome, number = 1)[0]
+            while chrom in list_of_reserved_chroms:                        ### if chromothripsis, check to make sure random chromosomes are not in list of chromothripsis chromosomes.
+                chrom = self.pick_chromosomes(genome, number = 1)[0]
+        elif fixed_chrom == None:
+            chrom = self.pick_chromosomes(genome, number = 1)[0]
+        else:
+            chrom = fixed_chrom
         start = self.get_location_on_sequence(genome[chrom])
         end = self.get_end_of_event(start, genome[chrom], p)
         self.tracker.create_deletion(chrom, start, end)
         logging.info('Orchestrated deletion from {} to {} in chrom {}'.format(start, end, chrom))
 
-    def orchestrate_translocation(self, genome, distribution='uniform', fixed_chrom=None):
+    def orchestrate_translocation(self, genome, distribution='uniform', fixed_chrom=None, chromothripsis=False, list_of_reserved_chroms=None):
         if len(genome) == 1:
             return
-        if fixed_chrom == None:
+        if ((fixed_chrom == None) & (chromothripsis=True)):
+            chrom = self.pick_chromosomes(genome, number = 1)[0]
+            while chrom in list_of_reserved_chroms:                        ### if chromothripsis, check to make sure random chromosomes are not in list of chromothripsis chromosomes.
+                chrom = self.pick_chromosomes(genome, number = 1)[0]
+        elif fixed_chrom == None:
             (chrom_source, chrom_target) = self.pick_chromosomes(genome, number = 2, replace=False)
         else:
             chrom_source = fixed_chrom
@@ -77,21 +90,14 @@ class Mutation_Orchestrator:
         logging.info('Orchestrated translocation at position {} to position {} on chrom {} at position {} to position {} on chrom {}'.format(
             start_source, end_source, chrom_source, start_target, end_target, chrom_target))
 
-    # Guarantees the end of the event isn't outside the sequence
-    def get_end_of_event(self, start_pos, seq, p):
-        length = self.get_event_length(p)
-        return np.min([start_pos + length, len(seq)])
-
-    # Models exponential decay, discretely
-    # Expected value of event is 1/p
-    def get_event_length(self, p=0.6, number = 1):
-        z = np.random.geometric(p, size=number)
-        return z[0]
-
     # Duplication currently only goes one direction (forward)
     # Creates a variable amount of duplications (num_duplications, drawn from geometric dist)
-    def orchestrate_duplication(self, genome, distribution='uniform', fixed_chrom=None):
-        if fixed_chrom == None:
+    def orchestrate_duplication(self, genome, distribution='uniform', fixed_chrom=None, chromothripsis=False, list_of_reserved_chroms=None):
+        if ((fixed_chrom == None) & (chromothripsis=True)):
+            chrom = self.pick_chromosomes(genome, number = 1)[0]
+            while chrom in list_of_reserved_chroms:                        ### if chromothripsis, check to make sure random chromosomes are not in list of chromothripsis chromosomes.
+                chrom = self.pick_chromosomes(genome, number = 1)[0]
+        elif fixed_chrom == None:
             chrom = self.pick_chromosomes(genome, number = 1)[0]
         else:
             chrom = fixed_chrom
@@ -103,8 +109,12 @@ class Mutation_Orchestrator:
              name='duplication (times {})'.format(num_duplications))
         logging.info('Orchestrated duplication at po`tion {} to {} on chrom {}'.format(start, end, chrom))
 
-    def orchestrate_inversion(self, genome, distribution='uniform', fixed_chrom=None):
-        if fixed_chrom == None:
+    def orchestrate_inversion(self, genome, distribution='uniform', fixed_chrom=None, chromothripsis=False, list_of_reserved_chroms=None):
+        if ((fixed_chrom == None) & (chromothripsis=True)):
+            chrom = self.pick_chromosomes(genome, number = 1)[0]
+            while chrom in list_of_reserved_chroms:                        ### if chromothripsis, check to make sure random chromosomes are not in list of chromothripsis chromosomes.
+                chrom = self.pick_chromosomes(genome, number = 1)[0]
+        elif fixed_chrom == None:
             chrom = self.pick_chromosomes(genome, number = 1)[0]
         else:
             chrom = fixed_chrom
@@ -113,8 +123,12 @@ class Mutation_Orchestrator:
         self.tracker.create_inversion(chrom, start, end)
         logging.info('Orchestrated inversion at position {} to {} on chrom {}'.format(start, end, chrom))
 
-    def orchestrate_insertion(self, genome, distribution='uniform', p=0.001, fixed_chrom=None):
-        if fixed_chrom == None:
+    def orchestrate_insertion(self, genome, distribution='uniform', p=0.001, fixed_chrom=None, chromothripsis=False, list_of_reserved_chroms=None):
+        if ((fixed_chrom == None) & (chromothripsis=True)):
+            chrom = self.pick_chromosomes(genome, number = 1)[0]
+            while chrom in list_of_reserved_chroms:                        ### if chromothripsis, check to make sure random chromosomes are not in list of chromothripsis chromosomes.
+                chrom = self.pick_chromosomes(genome, number = 1)[0]
+        elif fixed_chrom == None:
             chrom = self.pick_chromosomes(genome, number = 1)[0]
         else:
             chrom = fixed_chrom
@@ -125,6 +139,17 @@ class Mutation_Orchestrator:
         self.tracker.create_insertion(chrom, start, new_seq)
         logging.info('Orchestrated insertion at position {} on chrom {} adding bases from position {} to {}'.format(start,
          chrom, new_seq_start, new_seq_end))
+
+    # Guarantees the end of the event isn't outside the sequence
+    def get_end_of_event(self, start_pos, seq, p):
+        length = self.get_event_length(p)
+        return np.min([start_pos + length, len(seq)])
+    
+    # Models exponential decay, discretely
+    # Expected value of event is 1/p
+    def get_event_length(self, p=0.6, number = 1):
+        z = np.random.geometric(p, size=number)
+        return z[0]
 
     def generate_structural_variations(self, genome, number):
         variations = np.random.choice(list(structural_variations_probabilities.keys()),
