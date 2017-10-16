@@ -106,7 +106,7 @@ class Mutation_Orchestrator:
              name='duplication (times {})'.format(num_duplications))
         logging.info('Orchestrated duplication at po`tion {} to {} on chrom {}'.format(start, end, chrom))
 
-    def orchestrate_inversion(self, genome, distribution='uniform'):
+    def orchestrate_inversion(self, genome, distribution='uniform', p=0.01):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
         end = self.get_end_of_event(start, genome[chrom], p=p)
