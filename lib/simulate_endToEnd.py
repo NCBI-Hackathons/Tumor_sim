@@ -76,7 +76,7 @@ def check_chromothripsis_arg(value):
 
 ### bad form, taken directly from `mutation_orchestrator.py`
 
-def pick_chromosomes(self, genome, number=1, replace=True):
+def pick_chromosomes(genome, number=1, replace=True):
     relative_lengths = np.array([len(genome[x]) for x in genome])
     probabilities = relative_lengths / float(relative_lengths.sum())
     chroms = np.random.choice(list(genome.keys()), number, replace=replace, p=probabilities.tolist())
