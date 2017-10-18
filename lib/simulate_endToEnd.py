@@ -79,26 +79,20 @@ def check_chromothripsis_arg(value):
 def pick_chromosomes(self, genome, number=1, replace=True):
     relative_lengths = np.array([len(genome[x]) for x in genome])
     probabilities = relative_lengths / float(relative_lengths.sum())
-    chroms = np.random.choice(list(genome.keys()), number, replace=replace ,p=probabilities.tolist())
+    chroms = np.random.choice(list(genome.keys()), number, replace=replace, p=probabilities.tolist())
     return chroms
 
 
-##
-## randomly pick chromosome
-## check if chromosome in reserved list
-## if not in reserved list, then add to list
-### if in reserved list, then randomly pick again
 
-def reserve_chromothripsis_chromosomes(genome, list_of_reserved_chroms):
-    for i in range(args['chromothripsis_number_of_chroms']):
+def reserve_chromothripsis_chromosomes(genome, list_of_reserved_chroms, number_of_chromothriptic_chroms):
+    """ Randomly pick chromosome. Check if chromosome in reserved list.
+        If not in reserved list, then add to list. If chromosome already found
+        in reserved list, then randomly pick again """
+    for i in range(number_of_chromothriptic_chroms):
         chosen_chrom = pick_chromosomes(genome, number=1)
-        if chosen_chrom not in list_of_reserved_chroms:
+        while chosen_chrom in list_of_reserved_chroms:
+            chosen_chrom = pick_chromosomes(genome, number=1)   ## if the chromosome is already in the list, pick again
             list_of_reserved_chroms.append(chosen_chrom)
-        else:
-            while chosen_chrom in list_of_reserved_chroms:
-                chosen_chrom = pick_chromosomes(genome, number=1)  ## if the chromosome is already in the list, pick again---better than a while True loop
-
-
 
 
 ### Now, feed in list to chromosthirpsis, with events only happening at that list
@@ -108,17 +102,15 @@ def reserve_chromothripsis_chromosomes(genome, list_of_reserved_chroms):
 
 
 
-
-
 def main(args):
     
-    reserved_chroms = []
-     # read genome fasta
+    ## read genome fasta
     (mutated_genome, genome_offset) = read_fasta_normal(args['input_fasta'])
+    
 
-    ## normal
+    ## simulate normal
     orchestrator = Mutation_Orchestrator()
-    # add germilne SNVs & InDels
+    ## add germilne SNVs & InDels
     mutated_genome = orchestrator.snv_fast(mutated_genome, args['number_snvs'])
     orchestrator.generate_indels(mutated_genome, args['number_indels'])
     (mutated_genome, snv_and_indel_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
@@ -132,15 +124,26 @@ def main(args):
     del normal_complement
 
 
-    ## tumor
+    ## simulate tumor
     reserved_chroms = []
     
+    if args['chromothripsis_number_of_chroms'] is not None:                  ## chromothripsis = TRUE
+        reserve_chromothripsis_chromosomes(mutated_genome, reserved_chroms, args['chromothripsis_number_of_chroms'])  ### "blacklist" chromosomes from downstream SV addition
+        for chrom in reserved_chroms:
+            generate_chromothripsis(mutated_genome, chromosome=chrom) ## each chromosome must be passed through 'fixed_chrom'
     
     # add structural varations
-    orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])
-    (mutated_genome, tumor_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
-    write_fasta(mutated_genome, args['output_tumor_fasta'])
-    write_bed(genome_offset, tumor_bed, args['output_tumor_bedfile'])  ### write out "tumorsim" bedpe
+    if args['chromothripsis_number_of_chroms'] is not None:                  ## chromothripsis = TRUE
+        orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'], chromothripsis=True, list_of_reserved_chroms)
+        (mutated_genome, tumor_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
+        write_fasta(mutated_genome, args['output_tumor_fasta'])
+        write_bed(genome_offset, tumor_bed, args['output_tumor_bedfile'])  ### write out "tumorsim" bedpe
+    else:
+        orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])  ## chromothripsis = FALSE
+        (mutated_genome, tumor_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
+        write_fasta(mutated_genome, args['output_tumor_fasta'])
+        write_bed(genome_offset, tumor_bed, args['output_tumor_bedfile'])  ### write out "tumorsim" bedpe
+    
 
     ## output complement 3'-5' strand tumor
     tumor_complement = create_complementary_genome(mutated_genome)
