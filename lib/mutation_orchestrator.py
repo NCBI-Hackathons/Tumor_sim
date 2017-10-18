@@ -152,19 +152,19 @@ class Mutation_Orchestrator:
     def generate_structural_variations(self, genome, number, chromothripsis=False, list_of_reserved_chroms=None):
         if chromothripsis == False:
             variations = np.random.choice(list(structural_variations_probabilities.keys()),
-                    number, structural_variations_probabilities.values())
+                                          number, structural_variations_probabilities.values())
             for variation in variations:
                 self.structural_variations[variation](genome)
         elif chromothripsis == True:
             variations = np.random.choice(list(structural_variations_probabilities.keys()),
-                    number, structural_variations_probabilities.values()
+                                          number, structural_variations_probabilities.values())
             for variation in variations:
                 self.structural_variations[variation](genome, chromothripsis=True, list_of_reserved_chroms)
 
                 
     def generate_chromothripsis(self, genome, chromosome, number_of_chromothriptic_rearrangements):  ## not including inversions; number_of_chromothriptic_rearrangements from probabilities_config.py
         variations = np.random.choice(list(chromothripsis_probabilities.keys()),
-                                  number_of_chromothriptic_rearrangements, chromothripsis_probabilities.values())
+                                      number_of_chromothriptic_rearrangements, chromothripsis_probabilities.values())
         for variation in variations:
             self.structural_variations[variation](genome, fixed_chrom = chromosome, chromothripsis=True)   ## pass in a single chromosome for chromothripsis
 
