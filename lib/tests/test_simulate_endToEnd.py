@@ -83,6 +83,7 @@ class TestSimulateNormal(unittest.TestCase):
                     args['number_snvs'] = 1
                     args['number_indels'] = 1
                     args['number_of_tumorSVs'] = 1
+                    args['chromothripsis_number_of_chroms'] = 1
                     args['output_normal_bedfile'] = "test_output/normal.bed"
                     args['output_tumor_bedfile'] = "test_output/tumor.bed"
                     args['output_tumor_fasta'] = "test_output/tumorsim.fasta"
