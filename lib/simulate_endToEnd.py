@@ -134,7 +134,7 @@ def main(args):
     
     # add structural varations
     if args['chromothripsis_number_of_chroms'] is not None:                  ## chromothripsis = TRUE
-        orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'], chromothripsis=True, list_of_reserved_chroms)
+        orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'], chromothripsis=True, list_of_reserved_chroms=reserved_chroms)
         (mutated_genome, tumor_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
         write_fasta(mutated_genome, args['output_tumor_fasta'])
         write_bed(genome_offset, tumor_bed, args['output_tumor_bedfile'])  ### write out "tumorsim" bedpe
