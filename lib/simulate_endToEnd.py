@@ -113,13 +113,13 @@ if __name__ == "__main__":
     parser.add_argument('--output_complement_normal_fasta',
                         help='file path for the output complement 3-5 strand normal (SNV-added) fasta')
     parser.add_argument('--number_snvs',
-                        default = 100,
+                        default = 100, type=int,
                         help="number of single nucleotide variants to add to the normal genome")
     parser.add_argument('--number_indels',
-                        default = 100,
+                        default = 100, type=int,
                         help="number of small insertions and deletions to add to the normal genome")
     parser.add_argument('--number_of_tumorSVs',
-                        default = 50,
+                        default = 50, type=int, 
                         help="number of structural variations to add to the tumor genome")
     parser.add_argument('--output_normal_bedfile',
                         default = "outputs/normal.bed",
