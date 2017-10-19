@@ -20,3 +20,5 @@ chromothripsis_probabilities = {
 }
 
 number_of_chromothriptic_rearrangements = 100
+
+number_of_BFB_cycles = 100

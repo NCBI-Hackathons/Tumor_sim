@@ -3,7 +3,7 @@ import numpy as np
 from mutation_creator import Mutation_Creator
 from mutation_tracker import Mutation_Tracker
 import logging
-from probabilities_config import structural_variations_probabilities, snv_probabilities, chromothripsis_probabilities, number_of_chromothriptic_rearrangements
+from probabilities_config import structural_variations_probabilities, snv_probabilities, chromothripsis_probabilities, number_of_chromothriptic_rearrangements, number_of_BFB_cycles
 
 class Mutation_Orchestrator:
     """ Mutation_Orchestrator is a class that operates on a genome to make a mutation.
