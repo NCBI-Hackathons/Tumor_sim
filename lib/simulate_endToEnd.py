@@ -28,8 +28,7 @@ def remove_trailing_N_characters(sequence):
     return (sequence, offset)
 
 def read_fasta_normal(input_fasta_file):
-    """ Read in an input fasta file that represents a normal (non-cancerous) genome 
-        It takes some time to load entire 3GB hg38 into memory; possible performance problem """
+    """ Read in an input fasta file that represents a normal (non-cancerous) genome """
     genome = {}
     genome_offset = {}
     for seq_record in SeqIO.parse(input_fasta_file, "fasta"):
