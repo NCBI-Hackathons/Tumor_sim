@@ -75,6 +75,14 @@ def check_chromothripsis_arg(value):
     return ivalue
 
 
+## exception check for argparse, BFBs
+def check_BFB_arg(value):
+    ivalue = int(value)
+    if ivalue > 48:
+        raise argparse.ArgumentTypeError("%s is an invalid number of chromosome ends for --number_of_BFBs" % value)
+    return ivalue
+
+
 ### bad form, taken directly from `mutation_orchestrator.py`
 
 def pick_chromosomes(genome, number=1, replace=True):
@@ -181,6 +189,10 @@ if __name__ == "__main__":
                         default = None,
                         help="number of chromosome-wide chromthriptic events to add to the tumor genome",
                         type=check_chromothripsis_arg)
+    parser.add_argument('--number_of_BFBs',
+                        default = None,
+                        help="number of breakage-fusion-bridge cycle events to add to the tumor genome",
+                        type=check_BFB_arg)
     parser.add_argument('--output_normal_bedfile',
                         default = "outputs/normal.bed",
                         help='file path for the output normal (SNV-added) bedfile')
