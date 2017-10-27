@@ -184,7 +184,7 @@ def choice_fake(*args, **kwargs):
     if 'C' in args[0]:
         return ['C']
     if ['deletion', 'insertion'] in args:
-        return ['insertion']
+        return ['deletion']
     if 'inversion' in  args[0]:
         return ['inversion']
 
