@@ -184,7 +184,7 @@ def choice_fake(*args, **kwargs):
     if 'C' in args[0]:
         return ['C']
     if ['insertion', 'deletion'] in args:
-        return ['insertion']
+        return ['deletion']
     if 'inversion' in  args[0]:
         return ['inversion']
     import pdb; pdb.set_trace()
