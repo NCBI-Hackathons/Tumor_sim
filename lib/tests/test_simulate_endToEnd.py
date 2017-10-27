@@ -82,8 +82,8 @@ class TestSimulateNormal(unittest.TestCase):
                     args['input_fasta'] = "data/tiny_test.fa"
                     args['number_germline_snvs'] = 1
                     args['number_germline_indels'] = 1
-                    args['number_somatic_snvs'] = 1
-                    args['number_somatic_indels'] = 1
+                    args['number_somatic_snvs'] = 0
+                    args['number_somatic_indels'] = 0
                     args['number_of_tumorSVs'] = 1
                     args['output_normal_bedfile'] = "test_output/normal.bed"
                     args['output_tumor_bedfile'] = "test_output/tumor.bed"
@@ -132,8 +132,8 @@ class TestSimulateNormal(unittest.TestCase):
                     args['input_fasta'] = "data/tiny_test.fa"
                     args['number_germline_snvs'] = 1
                     args['number_germline_indels'] = 1
-                    args['number_somatic_snvs'] = 1
-                    args['number_somatic_indels'] = 1
+                    args['number_somatic_snvs'] = 0
+                    args['number_somatic_indels'] = 0
                     args['number_of_tumorSVs'] = 1
                     args['output_normal_bedfile'] = "test_output/normal.bed"
                     args['output_tumor_bedfile'] = "test_output/tumor.bed"
@@ -183,11 +183,10 @@ def choice_fake(*args, **kwargs):
         return ['chr1']
     if 'C' in args[0]:
         return ['C']
-    if ['insertion', 'deletion'] in args:
-        return ['deletion']
+    if ['deletion', 'insertion'] in args:
+        return ['insertion']
     if 'inversion' in  args[0]:
         return ['inversion']
-    import pdb; pdb.set_trace()
 
 def randint_fake(*args, **kwargs):
     return 1
