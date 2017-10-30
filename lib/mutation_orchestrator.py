@@ -128,7 +128,7 @@ class Mutation_Orchestrator:
                 number, structural_variations_probabilities.values())
         for variation in variations:
             sv_prob = np.random.uniform(0.001, 0.0000001, 1)   ## draw prob from uniform, 0.001 to 1e-7; large-scale somatic events
-            self.structural_variations[variation](genome, p=sv_prob[0])
+            return self.structural_variations[variation](genome, p=sv_prob[0])
             del sv_prob
 
     # Create small insertions and small deletions
@@ -136,11 +136,11 @@ class Mutation_Orchestrator:
         if germline == True:
             variations = np.random.choice(list(germline_indel_probabilities.keys()), number, germline_indel_probabilities.values())
             for variation in variations:
-                self.structural_variations[variation](genome, p=0.6)
+                return self.structural_variations[variation](genome, p=0.6)
         else:
             somatic_variations = np.random.choice(list(somatic_indel_probabilities.keys()), number, somatic_indel_probabilities.values())
             for somatic_variation in somatic_variations:
-                self.structural_variations[somatic_variation](genome, p=0.6)
+                return self.structural_variations[somatic_variation](genome, p=0.6)
 
     # Actually collapses the list of changes    
     def generate_fasta_and_bed(self, genome):
