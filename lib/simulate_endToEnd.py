@@ -76,7 +76,7 @@ def main(args):
         pass
     else:
         mutated_genome = orchestrator.snv_fast(mutated_genome, number=args['number_germline_snvs'], germline=True)
-        orchestrator.generate_indels(mutated_genome, number=aargs['number_germline_indels'], germline=True)
+        orchestrator.generate_indels(mutated_genome, number=args['number_germline_indels'], germline=True)
         (mutated_genome, snv_and_indel_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
         ### write out "normalsim" bedpe and fasta
         write_fasta(mutated_genome, args['output_normal_fasta'])
@@ -92,8 +92,8 @@ def main(args):
     if ((args['number_somatic_snvs']==0) & (args['number_somatic_indels']==0)):
         pass
     else:
-        orchestrator.snv_fast(mutated_genome, number=aargs['number_somatic_snvs'], germline=False)
-        orchestrator.generate_indels(mutated_genome, number=aargs['number_somatic_indels'], germline=False)
+        orchestrator.snv_fast(mutated_genome, number=args['number_somatic_snvs'], germline=False)
+        orchestrator.generate_indels(mutated_genome, number=args['number_somatic_indels'], germline=False)
     
     # add (somatic) structural varations
     if (args['number_of_tumorSVs']==0):
