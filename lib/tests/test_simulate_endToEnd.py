@@ -8,6 +8,8 @@ import numpy as np
 import mock
 import os
 
+from probabilities_config import germline_snv_probabilities, germline_indel_probabilities, somatic_snv_probabilities, somatic_indel_probabilities, structural_variations_probabilities
+
 class TestSimulateNormal(unittest.TestCase):
 
     def setUp(self):
