@@ -183,8 +183,10 @@ def choice_fake(*args, **kwargs):
         return ['chr1']
     if 'C' in args[0]:
         return ['C']
-    if ['deletion', 'insertion'] in args:
-        return ['insertion']
+    ### Given that generate_indels now grabs the dictionary values for the associated keys in the
+    #### probability dictionary object in the config file (similar to generate_structural_variations() ), we need another test
+    ### if ['deletion', 'insertion'] in args:   --- this passes for both Python2.7 and Python3.4, but 'deletion' only fails, cf  Commit 2ecea68 
+    ###     return ['insertion']
     if 'inversion' in  args[0]:
         return ['inversion']
 
