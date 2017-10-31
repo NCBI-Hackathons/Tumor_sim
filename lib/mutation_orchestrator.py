@@ -126,8 +126,6 @@ class Mutation_Orchestrator:
     def generate_structural_variations(self, genome, number):
         variations = np.random.choice(list(structural_variations_probabilities.keys()),
                 number, structural_variations_probabilities.values())
-        print(variations==None)
-        print(variations)
         for variation in variations:
             sv_prob = np.random.uniform(0.001, 0.0000001, 1)   ## draw prob from uniform, 0.001 to 1e-7; large-scale somatic events
             return self.structural_variations[variation](genome, p=sv_prob[0])
@@ -137,8 +135,6 @@ class Mutation_Orchestrator:
     def generate_indels(self, genome, number, germline = True):
         if germline == True:
             variations = np.random.choice(list(germline_indel_probabilities.keys()), number, germline_indel_probabilities.values())
-            print(variations==None)
-            print(variations)
             for variation in variations:
                 return self.structural_variations[variation](genome, p=0.6)
         else:
