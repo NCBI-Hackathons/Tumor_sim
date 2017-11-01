@@ -3,7 +3,7 @@ import numpy as np
 from mutation_creator import Mutation_Creator
 from mutation_tracker import Mutation_Tracker
 import logging
-from probabilities_config import structural_variations_probabilities, snv_probabilities
+from probabilities_config import structural_variations_probabilities, snv_probabilities, variant_distribution
 
 class Mutation_Orchestrator:
     """ Mutation_Orchestrator is a class that operates on a genome to make a mutation.
@@ -39,7 +39,7 @@ class Mutation_Orchestrator:
         chroms = np.random.choice(list(genome.keys()), number, replace=replace ,p=probabilities.tolist())
         return chroms
 
-    def get_location_on_sequence(self, seq, distribution='uniform'):
+    def get_location_on_sequence(self, seq, distribution= variant_distribution):
         if distribution == 'uniform':
             # Don't select a location with a N
             while True:
@@ -54,18 +54,17 @@ class Mutation_Orchestrator:
                 location = np.random.normal(mean, sigma, 1)
                 if location >= 0 and location <= len(seq) and seq[location] != 'N':
                     return location
-        else:
-            raise NotImplementedError("Only Uniform and Gaussian is implemented!")
+
 
     # Default to being a big deletion, but p=0.6 makes it a small deletion
-    def orchestrate_deletion(self, genome, distribution='uniform', p=0.001):
+    def orchestrate_deletion(self, genome, distribution=variant_distribution, p=0.001):
         chrom = self.pick_chromosomes(genome)[0]
         start = self.get_location_on_sequence(genome[chrom])
         end = self.get_end_of_event(start, genome[chrom], p)
         self.tracker.create_deletion(chrom, start, end)
         logging.info('Orchestrated deletion from {} to {} in chrom {}'.format(start, end, chrom))
 
-    def orchestrate_translocation(self, genome, distribution='uniform'):
+    def orchestrate_translocation(self, genome, distribution=variant_distribution):
         if len(genome) == 1:
             print('No translocations allowed: genome too small')
             return
@@ -94,7 +93,7 @@ class Mutation_Orchestrator:
 
     # Duplication currently only goes one direction (forward)
     # Creates a variable amount of duplications (num_duplications, drawn from geometric dist)
-    def orchestrate_duplication(self, genome, distribution='uniform'):
+    def orchestrate_duplication(self, genome, distribution=variant_distribution):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
         end = self.get_end_of_event(start, genome[chrom], p=0.001)
@@ -104,14 +103,14 @@ class Mutation_Orchestrator:
              name='duplication (times {})'.format(num_duplications))
         logging.info('Orchestrated duplication at po`tion {} to {} on chrom {}'.format(start, end, chrom))
 
-    def orchestrate_inversion(self, genome, distribution='uniform'):
+    def orchestrate_inversion(self, genome, distribution=variant_distribution):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
         end = self.get_end_of_event(start, genome[chrom], p=0.001)
         self.tracker.create_inversion(chrom, start, end)
         logging.info('Orchestrated inversion at position {} to {} on chrom {}'.format(start, end, chrom))
 
-    def orchestrate_insertion(self, genome, distribution='uniform', p=0.001):
+    def orchestrate_insertion(self, genome, distribution=variant_distribution, p=0.001):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
         new_seq_start = self.get_location_on_sequence(genome[chrom])

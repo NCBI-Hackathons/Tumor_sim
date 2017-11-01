@@ -12,3 +12,10 @@ snv_probabilities = {
     'T':.25,
     'G':.25
 }
+
+variant_distribution = 'uniform'
+
+
+
+if variant_distribution not in ('uniform', 'normal', 'gaussian'):
+    raise NotImplementedError("Only Uniform and Gaussian are implemented! Enter 'uniform' or 'normal' ")
