@@ -55,8 +55,16 @@ class Mutation_Orchestrator:
                 location = np.random.randint(len(seq))
                 if seq[location] != 'N':
                     return location
+        elif distribution == 'normal' or 'gaussian':
+            # Don't select a location with a N, and discard draws outside of bounds
+            while True:
+                mean = len(seq)/2
+                sigma = len(seq)/6
+                location =  np.random.normal(mean, sigma, 1)
+                if location < 0 or location > length(seq) or seq[location] != 'N':
+                    return location
         else:
-            raise NotImplementedError("Only Uniform is implemented!")
+            raise NotImplementedError("Only Uniform & Gaussian are implemented!")
 
     # Default to being a big deletion, but p=0.6 makes it a small deletion
     def orchestrate_deletion(self, genome, distribution='uniform', p=0.001):
