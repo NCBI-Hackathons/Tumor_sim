@@ -135,8 +135,9 @@ class Mutation_Orchestrator:
     def generate_indels(self, genome, number, germline = True):
         if germline == True:
             variations = np.random.choice(list(germline_indel_probabilities.keys()), number, germline_indel_probabilities.values())
-            for variation in variations:
-                return self.structural_variations[variation](genome, p=0.6)
+            if variations is not None:   ### check for tests: 
+                for variation in variations:
+                    return self.structural_variations[variation](genome, p=0.6)
         else:
             somatic_variations = np.random.choice(list(somatic_indel_probabilities.keys()), number, somatic_indel_probabilities.values())
             for somatic_variation in somatic_variations:
