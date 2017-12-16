@@ -38,7 +38,7 @@ def read_fasta_normal(input_fasta_file):
 
     ## remove all 'useless' chromosomes, i.e. must match chrX, chrY or "^[a-z]{3}\d{1,2}$"
     genome = {k: v for k, v in genome.items() 
-                    if re.match('^[a-z]{3}\d{1,2}$', k, re.IGNORECASE) or k in ["chrX", "chrY"]}
+                    if re.match('^[a-z]{3}\d{1,2}$', k, re.IGNORECASE) or k in ["chrX", "chrY", "chrx", "chry"] or k in ["X", "Y", "x", "y"]}
     return (genome, genome_offset)
 
 def subtract_beds(bed1, bed2):
