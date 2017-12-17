@@ -11,7 +11,14 @@ class Mutation_Creator:
         return new_seq
 
     def create_snv(self, mutable_seq, start, new_base):
-        mutable_seq[start] = new_base
+        ref = mutable_seq[start]
+        if ref != new_base:
+            mutable_seq[start] = new_base
+        else:
+            new_base = get_genuine_alt(ref)
+            mutable_seq[start] = new_base
+        del ref
+        del new_base
         return mutable_seq
 
     def create_insertion(self, mutable_seq, start, new_seq):
@@ -32,3 +39,12 @@ class Mutation_Creator:
         new_seq2 = self.create_deletion(seq2, start2,start2+length2)
         new_seq2 = self.create_insertion(new_seq2, start2, seq1[start1:start1+length1])
         return (new_seq1, new_seq2)
+
+
+def get_genuine_alt(incorrect_snp):
+    """ Convert REF base to ALT base such that REF != ALT"""
+    bases = set('ATCG')
+    legend = {base:list(bases - set(base)) for base in bases}  ## key-value legend, `{'C': ['T', 'A', 'G'], ...`
+    alt = random.choice(legend[incorrect_snp])
+    return alt
+
