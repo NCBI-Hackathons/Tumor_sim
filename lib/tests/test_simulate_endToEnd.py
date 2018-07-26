@@ -8,6 +8,8 @@ import numpy as np
 import mock
 import os
 
+from probabilities_config import germline_snv_probabilities, germline_indel_probabilities, somatic_snv_probabilities, somatic_indel_probabilities, structural_variations_probabilities
+
 class TestSimulateNormal(unittest.TestCase):
 
     def setUp(self):
@@ -80,8 +82,10 @@ class TestSimulateNormal(unittest.TestCase):
                 
                     args = {}
                     args['input_fasta'] = "data/tiny_test.fa"
-                    args['number_snvs'] = 1
-                    args['number_indels'] = 1
+                    args['number_germline_snvs'] = 1
+                    args['number_germline_indels'] = 1
+                    args['number_somatic_snvs'] = 0
+                    args['number_somatic_indels'] = 0
                     args['number_of_tumorSVs'] = 1
                     args['output_normal_bedfile'] = "test_output/normal.bed"
                     args['output_tumor_bedfile'] = "test_output/tumor.bed"
@@ -128,8 +132,10 @@ class TestSimulateNormal(unittest.TestCase):
                 
                     args = {}
                     args['input_fasta'] = "data/tiny_test.fa"
-                    args['number_snvs'] = 1
-                    args['number_indels'] = 1
+                    args['number_germline_snvs'] = 1
+                    args['number_germline_indels'] = 1
+                    args['number_somatic_snvs'] = 0
+                    args['number_somatic_indels'] = 0
                     args['number_of_tumorSVs'] = 1
                     args['output_normal_bedfile'] = "test_output/normal.bed"
                     args['output_tumor_bedfile'] = "test_output/tumor.bed"
@@ -179,11 +185,12 @@ def choice_fake(*args, **kwargs):
         return ['chr1']
     if 'C' in args[0]:
         return ['C']
-    if ['insertion', 'deletion'] in args:
-        return ['insertion']
+    ### Given that generate_indels now grabs the dictionary values for the associated keys in the
+    #### probability dictionary object in the config file (similar to generate_structural_variations() ), we need another test
+    if ['deletion', 'insertion'] in args:  ### --- this passes for both Python2.7 and Python3.4, but 'deletion' only fails, cf  Commit 2ecea68
+        return ['insertion']   ### fails with 'deletion' 
     if 'inversion' in  args[0]:
         return ['inversion']
-    import pdb; pdb.set_trace()
 
 def randint_fake(*args, **kwargs):
     return 1

@@ -3,7 +3,7 @@ import numpy as np
 from mutation_creator import Mutation_Creator
 from mutation_tracker import Mutation_Tracker
 import logging
-from probabilities_config import structural_variations_probabilities, snv_probabilities
+from probabilities_config import germline_snv_probabilities, germline_indel_probabilities, somatic_snv_probabilities, somatic_indel_probabilities, structural_variations_probabilities
 
 class Mutation_Orchestrator:
     """ Mutation_Orchestrator is a class that operates on a genome to make a mutation.
@@ -23,15 +23,24 @@ class Mutation_Orchestrator:
 
         self.logger = logging.basicConfig(filename='example.log',level=logging.DEBUG)
 
-    def snv_fast(self, genome, number):
+    def snv_fast(self, genome, number, germline=True):
         chroms = self.pick_chromosomes(genome, number)
-        ### assume for normal bases 
-        new_bases = np.random.choice(list(snv_probabilities.keys()), number, snv_probabilities.values())
-        for i in range(number):
-            start = self.get_location_on_sequence(genome[chroms[i]])
-            genome[chroms[i]] = self.creator.create_snv(genome[chroms[i]], start, new_bases[i])
-            logging.info('Added base {} at position {} in chrom {}'.format(new_bases[i], str(start), chroms[i]))
-        return genome
+        ### assume for normal bases
+        if germline == True:
+            new_bases = np.random.choice(list(germline_snv_probabilities.keys()), number, germline_snv_probabilities.values())
+            for i in range(number):
+                start = self.get_location_on_sequence(genome[chroms[i]])
+                genome[chroms[i]] = self.creator.create_snv(genome[chroms[i]], start, new_bases[i])
+                logging.info('Added base {} at position {} in chrom {}'.format(new_bases[i], str(start), chroms[i]))
+            return genome
+        else:
+            new_bases = np.random.choice(list(somatic_snv_probabilities.keys()), number, somatic_snv_probabilities.values())
+            for i in range(number):
+                start = self.get_location_on_sequence(genome[chroms[i]])
+                genome[chroms[i]] = self.creator.create_snv(genome[chroms[i]], start, new_bases[i])
+                logging.info('Added base {} at position {} in chrom {}'.format(new_bases[i], str(start), chroms[i]))
+            return genome
+            
 
     def pick_chromosomes(self, genome, number=1, replace=True):
         relative_lengths = np.array([len(genome[x]) for x in genome])
@@ -53,19 +62,19 @@ class Mutation_Orchestrator:
     def orchestrate_deletion(self, genome, distribution='uniform', p=0.001):
         chrom = self.pick_chromosomes(genome)[0]
         start = self.get_location_on_sequence(genome[chrom])
-        end = self.get_end_of_event(start, genome[chrom], p)
+        end = self.get_end_of_event(start, genome[chrom], p=p)
         self.tracker.create_deletion(chrom, start, end)
         logging.info('Orchestrated deletion from {} to {} in chrom {}'.format(start, end, chrom))
 
-    def orchestrate_translocation(self, genome, distribution='uniform'):
+    def orchestrate_translocation(self, genome, distribution='uniform', p=0.001):
         if len(genome) == 1:
             print('No translocations allowed: genome too small')
             return
         (chrom_source, chrom_target) = self.pick_chromosomes(genome, number = 2, replace = False)
         start_source = self.get_location_on_sequence(genome[chrom_source])
         start_target = self.get_location_on_sequence(genome[chrom_target])
-        end_source = self.get_end_of_event(start_source, genome[chrom_source], p=0.001)
-        end_target = self.get_end_of_event(start_target, genome[chrom_target], p=0.001)
+        end_source = self.get_end_of_event(start_source, genome[chrom_source], p=p)
+        end_target = self.get_end_of_event(start_target, genome[chrom_target], p=p)
         new_seq_source = genome[chrom_target][start_target:end_target]
         new_seq_target = genome[chrom_source][start_source:end_source]
         self.tracker.create_translocation(chrom_source, chrom_target, start_source,
@@ -80,30 +89,31 @@ class Mutation_Orchestrator:
 
     # Models exponential decay, discretely
     # Expected value of event is 1/p
-    def get_event_length(self, p=0.6, number = 1):
+    def get_event_length(self, p=0.6, number=1):
         z = np.random.geometric(p, size=number)
         return z[0]
-
+    
     # Duplication currently only goes one direction (forward)
     # Creates a variable amount of duplications (num_duplications, drawn from geometric dist)
-    def orchestrate_duplication(self, genome, distribution='uniform'):
+    def orchestrate_duplication(self, genome, distribution='uniform', p=0.01):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
-        end = self.get_end_of_event(start, genome[chrom], p=0.001)
-        num_duplications = self.get_event_length(p=0.6) # exponential ranging from 1 to 10
+        end = self.get_end_of_event(start, genome[chrom], p=p)
+        duplication_prob = np.random.uniform(0.05, 0.7, 1)  ## with np.random.geometric(p, 1), these values are 14 to 2
+        num_duplications = self.get_event_length(p=duplication_prob[0]) # exponential ranging from 1 to 10
         new_seq = str(genome[chrom][start:end]) * num_duplications
         self.tracker.create_insertion(chrom, start, new_seq,
              name='duplication (times {})'.format(num_duplications))
         logging.info('Orchestrated duplication at po`tion {} to {} on chrom {}'.format(start, end, chrom))
 
-    def orchestrate_inversion(self, genome, distribution='uniform'):
+    def orchestrate_inversion(self, genome, distribution='uniform', p=0.01):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
-        end = self.get_end_of_event(start, genome[chrom], p=0.001)
+        end = self.get_end_of_event(start, genome[chrom], p=p)
         self.tracker.create_inversion(chrom, start, end)
         logging.info('Orchestrated inversion at position {} to {} on chrom {}'.format(start, end, chrom))
 
-    def orchestrate_insertion(self, genome, distribution='uniform', p=0.001):
+    def orchestrate_insertion(self, genome, distribution='uniform', p=0.01):
         chrom = self.pick_chromosomes(genome, number = 1)[0]
         start = self.get_location_on_sequence(genome[chrom])
         new_seq_start = self.get_location_on_sequence(genome[chrom])
@@ -117,13 +127,20 @@ class Mutation_Orchestrator:
         variations = np.random.choice(list(structural_variations_probabilities.keys()),
                 number, structural_variations_probabilities.values())
         for variation in variations:
-            self.structural_variations[variation](genome)
+            sv_prob = np.random.uniform(0.001, 0.0000001, 1)   ## draw prob from uniform, 0.001 to 1e-7; large-scale somatic events
+            return self.structural_variations[variation](genome, p=sv_prob[0])
+            del sv_prob
 
     # Create small insertions and small deletions
-    def generate_indels(self, genome, number):
-        variations = np.random.choice(list(['insertion', 'deletion']), number)
-        for variation in variations:
-            self.structural_variations[variation](genome, p=0.6)
+    def generate_indels(self, genome, number, germline = True):
+        if germline == True:
+            variations = np.random.choice(list(germline_indel_probabilities.keys()), number, list(germline_indel_probabilities.values()))   ### why is this sometimes None in tests?  cf. nose.proxy.TypeError: 'NoneType' object is not iterable
+            for variation in variations:
+                return self.structural_variations[variation](genome, p=0.6)
+        else:
+            somatic_variations = np.random.choice(list(somatic_indel_probabilities.keys()), number, somatic_indel_probabilities.values())
+            for somatic_variation in somatic_variations:
+                return self.structural_variations[somatic_variation](genome, p=0.6)
 
     # Actually collapses the list of changes    
     def generate_fasta_and_bed(self, genome):

@@ -2,7 +2,7 @@ language: python
 python:
     - 2.7
     - 3.4
-install:
+install: 
     - sudo apt-get -y update
     - sudo apt-get -y update
     - sudo apt-get -y install r-base

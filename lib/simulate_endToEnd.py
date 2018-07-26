@@ -72,27 +72,43 @@ def main(args):
 
     orchestrator = Mutation_Orchestrator()
     # add germilne SNVs & InDels
-    mutated_genome = orchestrator.snv_fast(mutated_genome, args['number_snvs'])
-    orchestrator.generate_indels(mutated_genome, args['number_indels'])
-    (mutated_genome, snv_and_indel_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
-    ### write out "normalsim" bedpe and fasta
-    write_fasta(mutated_genome, args['output_normal_fasta'])
-    write_bed(genome_offset, snv_and_indel_bed, args['output_normal_bedfile'])  
+    if ((args['number_germline_snvs']==0) & (args['number_germline_indels']==0)):
+        pass
+    else:
+        mutated_genome = orchestrator.snv_fast(mutated_genome, number=args['number_germline_snvs'], germline=True)
+        orchestrator.generate_indels(mutated_genome, number=args['number_germline_indels'], germline=True)
+        (mutated_genome, snv_and_indel_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
+        ### write out "normalsim" bedpe and fasta
+        write_fasta(mutated_genome, args['output_normal_fasta'])
+        write_bed(genome_offset, snv_and_indel_bed, args['output_normal_bedfile'])    ## records changes to reference FASTA
 
-    ## output complement 3'-5' strand normal
-    normal_complement = create_complementary_genome(mutated_genome)
-    write_fasta(normal_complement, args['output_complement_normal_fasta'])
-    del normal_complement
+    ## output complement 3'-5' strand normal, if flag exists
+    if args['output_complement_normal_fasta'] is not None:
+        normal_complement = create_complementary_genome(mutated_genome)
+        write_fasta(normal_complement, args['output_complement_normal_fasta'])
+        del normal_complement
 
-    # add structural varations
-    orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])
+    # add somatic SNVs & InDels
+    if ((args['number_somatic_snvs']==0) & (args['number_somatic_indels']==0)):
+        pass
+    else:
+        orchestrator.snv_fast(mutated_genome, number=args['number_somatic_snvs'], germline=False)
+        orchestrator.generate_indels(mutated_genome, number=args['number_somatic_indels'], germline=False)
+    
+    # add (somatic) structural varations
+    if (args['number_of_tumorSVs']==0):
+        pass
+    else:
+        orchestrator.generate_structural_variations(mutated_genome, number=args['number_of_tumorSVs'])
+
     (mutated_genome, tumor_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
     write_fasta(mutated_genome, args['output_tumor_fasta'])
     write_bed(genome_offset, tumor_bed, args['output_tumor_bedfile'])  ### write out "tumorsim" bedpe
 
-    ## output complement 3'-5' strand tumor
-    tumor_complement = create_complementary_genome(mutated_genome)
-    write_fasta(tumor_complement, args['output_complement_tumor_fasta'])
+    ## output complement 3'-5' strand tumor, if flag exists
+    if args['output_complement_tumor_fasta'] is not None:
+        tumor_complement = create_complementary_genome(mutated_genome)
+        write_fasta(tumor_complement, args['output_complement_tumor_fasta'])
 
 
 if __name__ == "__main__":
@@ -107,25 +123,29 @@ if __name__ == "__main__":
                         default = "outputs/normalsim.fasta",
                         help='file path for the output normal (SNV-added) fasta')
     parser.add_argument('--output_complement_tumor_fasta',
-                        default="outputs/complement_tumorsim.fasta",
                         help='file path for the output complement 3-5 strand tumor (cancer genome) fasta')
     parser.add_argument('--output_complement_normal_fasta',
-                        default="outputs/complement_normalsim.fasta",
                         help='file path for the output complement 3-5 strand normal (SNV-added) fasta')
-    parser.add_argument('--number_snvs',
-                        default = 3000,
-                        help="number of single nucleotide variants to add to the normal genome")
-    parser.add_argument('--number_indels',
-                        default = 4150,
-                        help="number of small insertions and deletions to add to the normal genome")
+    parser.add_argument('--number_germline_snvs',
+                        default = 2,
+                        help="number of germline single nucleotide variants to add to the normal genome")
+    parser.add_argument('--number_germline_indels',
+                        default = 2,
+                        help="number of small germline insertions and deletions to add to the normal genome")
+    parser.add_argument('--number_somatic_snvs',
+                        default = 2,
+                        help="number of somatic single nucleotide variants to add to the tumor genome")
+    parser.add_argument('--number_somatic_indels',
+                        default = 2,
+                        help="number of somatic insertions and deletions to add to the tumor genome")
     parser.add_argument('--number_of_tumorSVs',
-                        default = 10000,
-                        help="number of structural variations to add to the tumor genome")
+                        default = 5,
+                        help="number of (somatic) structural variations to add to the tumor genome")
     parser.add_argument('--output_normal_bedfile',
                         default = "outputs/normal.bed",
-                        help='file path for the output normal (SNV-added) bedfile')
+                        help='file path for the output normal (germline variants-added) bedfile')
     parser.add_argument('--output_tumor_bedfile',
                         default="outputs/tumorsim.bed",
-                        help='file path for the output tumor (cancer genome) bedfile')
+                        help='file path for the output tumor (somatic variants-added) bedfile')
     args = vars(parser.parse_args())
     main(args)
