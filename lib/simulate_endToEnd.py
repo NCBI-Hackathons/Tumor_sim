@@ -1,6 +1,7 @@
 from Bio import SeqIO
 from mutation_orchestrator import Mutation_Orchestrator
 import copy
+import numpy as np
 import pandas as pd
 import re
 import argparse
@@ -29,7 +30,7 @@ def remove_trailing_N_characters(sequence):
 
 def read_fasta_normal(input_fasta_file):
     """ Read in an input fasta file that represents a normal (non-cancerous) genome 
-        It takes some time to load entire 3GB hg38 into memory; possible performance problem """
+        It takes some time to load entire 3GB hg38 into memory """
     genome = {}
     genome_offset = {}
     for seq_record in SeqIO.parse(input_fasta_file, "fasta"):
@@ -64,14 +65,53 @@ def create_complementary_genome(genome):
     new_genome = copy.deepcopy(genome)
     for chrom in new_genome:
         new_genome[chrom].complement()
-    return new_genome 
+    return new_genome
+
+## exception check for argparse, chromothripsis
+def check_chromothripsis_arg(value):
+    ivalue = int(value)
+    if ivalue > 24:
+        raise argparse.ArgumentTypeError("%s is an invalid number of chromosomes for --chromothripsis_number_of_chroms" % value)
+    return ivalue
+
+
+### bad form, taken directly from `mutation_orchestrator.py`
+
+def pick_chromosomes(genome, number=1, replace=True):
+    relative_lengths = np.array([len(genome[x]) for x in genome])
+    probabilities = relative_lengths / float(relative_lengths.sum())
+    chroms = np.random.choice(list(genome.keys()), number, replace=replace, p=probabilities.tolist())
+    return chroms
+
+
+
+def reserve_chromothripsis_chromosomes(genome, list_of_reserved_chroms, number_of_chromothriptic_chroms):
+    """ Randomly pick chromosome. Check if chromosome in reserved list.
+        If not in reserved list, then add to list. If chromosome already found
+        in reserved list, then randomly pick again """
+    for i in range(number_of_chromothriptic_chroms):
+        chosen_chrom = pick_chromosomes(genome, number=1)
+        while chosen_chrom in list_of_reserved_chroms:
+            chosen_chrom = pick_chromosomes(genome, number=1)   ## if the chromosome is already in the list, pick again
+            list_of_reserved_chroms.append(chosen_chrom)
+
+
+### Now, feed in list to chromosthirpsis, with events only happening at that list
+
+## SV events below must ignore these chromosomes
+## flag: if chromothripsis, then check whether reserved chromosome is in the list. If so, ignore
+
+
 
 def main(args):
-     # read genome fasta
+    
+    ## read genome fasta
     (mutated_genome, genome_offset) = read_fasta_normal(args['input_fasta'])
+    
 
+    ## simulate normal
     orchestrator = Mutation_Orchestrator()
-    # add germilne SNVs & InDels
+    ## add germilne SNVs & InDels
     mutated_genome = orchestrator.snv_fast(mutated_genome, args['number_snvs'])
     orchestrator.generate_indels(mutated_genome, args['number_indels'])
     (mutated_genome, snv_and_indel_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
@@ -84,11 +124,27 @@ def main(args):
     write_fasta(normal_complement, args['output_complement_normal_fasta'])
     del normal_complement
 
+
+    ## simulate tumor
+    reserved_chroms = []
+    
+    if args['chromothripsis_number_of_chroms'] is not None:                  ## chromothripsis = TRUE
+        reserve_chromothripsis_chromosomes(mutated_genome, reserved_chroms, args['chromothripsis_number_of_chroms'])  ### "blacklist" chromosomes from downstream SV addition
+        for chrom in reserved_chroms:
+            generate_chromothripsis(mutated_genome, chromosome=chrom) ## each chromosome must be passed through 'fixed_chrom'
+    
     # add structural varations
-    orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])
-    (mutated_genome, tumor_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
-    write_fasta(mutated_genome, args['output_tumor_fasta'])
-    write_bed(genome_offset, tumor_bed, args['output_tumor_bedfile'])  ### write out "tumorsim" bedpe
+    if args['chromothripsis_number_of_chroms'] is not None:                  ## chromothripsis = TRUE
+        orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'], chromothripsis=True, list_of_reserved_chroms=reserved_chroms)
+        (mutated_genome, tumor_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
+        write_fasta(mutated_genome, args['output_tumor_fasta'])
+        write_bed(genome_offset, tumor_bed, args['output_tumor_bedfile'])  ### write out "tumorsim" bedpe
+    else:
+        orchestrator.generate_structural_variations(mutated_genome, args['number_of_tumorSVs'])  ## chromothripsis = FALSE
+        (mutated_genome, tumor_bed) = orchestrator.generate_fasta_and_bed(mutated_genome)
+        write_fasta(mutated_genome, args['output_tumor_fasta'])
+        write_bed(genome_offset, tumor_bed, args['output_tumor_bedfile'])  ### write out "tumorsim" bedpe
+    
 
     ## output complement 3'-5' strand tumor
     tumor_complement = create_complementary_genome(mutated_genome)
@@ -121,6 +177,10 @@ if __name__ == "__main__":
     parser.add_argument('--number_of_tumorSVs',
                         default = 10000,
                         help="number of structural variations to add to the tumor genome")
+    parser.add_argument('--chromothripsis_number_of_chroms',
+                        default = None,
+                        help="number of chromosome-wide chromthriptic events to add to the tumor genome",
+                        type=check_chromothripsis_arg)
     parser.add_argument('--output_normal_bedfile',
                         default = "outputs/normal.bed",
                         help='file path for the output normal (SNV-added) bedfile')
